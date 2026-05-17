@@ -43,7 +43,7 @@ export default function SignupPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button className="w-full bg-green-600 text-white p-2 rounded">
+        <button className="w-full bg-[#29b55a] text-white p-2 rounded">
           Sign Up
         </button>
       </form>

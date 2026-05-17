@@ -2,7 +2,7 @@ export default function Loader({ size = 40, text = 'Loading...' }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-6">
       <div
-        className="animate-spin rounded-full border-4 border-gray-200 border-t-green-600"
+        className="animate-spin rounded-full border-4 border-gray-200 border-t-[#29b55a]"
         style={{
           width: size,
           height: size,

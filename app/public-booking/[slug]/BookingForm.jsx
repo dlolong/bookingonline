@@ -2,28 +2,41 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import { useApp } from '@/context/AppContext'
 
 export default function BookingForm({ resort }) {
+  const { showToast } = useApp()
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [success, setSuccess] = useState(false)
+  const [success, setSuccess] = useState(true)
 
-  const [form, setForm] = useState({
+  const defaultForm = {
     name: '',
     contact: '',
     start_date: '',
-    start_time: '14:00',
+    start_time: '07:00',
     end_date: '',
-    end_time: '12:00',
+    end_time: '17:00',
     guests: '',
     notes: '',
-  })
+  }
+
+  const [form, setForm] = useState(defaultForm)
 
   const handleChange = (e) => {
     setForm((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }))
+  }
+
+  const resetForm = () => {
+    setForm(defaultForm)
+  }
+
+  const handleNewBooking = () => {
+    resetForm()
+    setSuccess(false)
   }
 
   const handleSubmit = async (e) => {
@@ -36,38 +49,42 @@ export default function BookingForm({ resort }) {
     const newEnd = new Date(`${form.end_date}T${form.end_time}`)
 
     if (newEnd <= newStart) {
-      setErrorMessage('Check-out must be later than check-in.')
+      showToast({
+        type: 'error',
+        message: 'Check-out must be later than check-in.',
+      })
       setLoading(false)
       return
     }
 
     const { data: existingBookings, error: checkError } = await supabase
       .from('bookings')
-      .select('*')
+      .select('start_datetime', 'end_datetime')
       .eq('resort_id', resort.id)
       .in('status', ['confirmed', 'pending'])
 
     if (checkError) {
       console.error(checkError)
-      setErrorMessage('Failed to check availability.')
+      showToast({
+        type: 'error',
+        message: 'Failed to check availability.',
+      })
       setLoading(false)
       return
     }
 
     const hasConflict = (existingBookings || []).some((booking) => {
-      const existingStart = new Date(
-        `${booking.start_date}T${booking.start_time}`
-      )
+      const existingStart = new Date(booking.start_datetime)
+      const existingEnd = new Date(booking.end_datetime)
 
-      const existingEnd = new Date(
-        `${booking.end_date}T${booking.end_time}`
-      )
-
-      return newStart <= existingEnd && newEnd >= existingStart
+      return newStart < existingEnd && newEnd > existingStart
     })
 
     if (hasConflict) {
-      setErrorMessage('Selected date and time are already booked.')
+      showToast({
+        type: 'error',
+        message: 'Selected date and time are already booked.',
+      })
       setLoading(false)
       return
     }
@@ -89,10 +106,14 @@ export default function BookingForm({ resort }) {
 
     if (error) {
       console.error(error)
-      setErrorMessage('Failed to submit booking.')
+      showToast({
+        type: 'error',
+        message: 'Failed to submit booking.',
+      })
       return
     }
 
+    resetForm()
     setSuccess(true)
   }
 
@@ -100,6 +121,13 @@ export default function BookingForm({ resort }) {
     return (
       <div className="bg-green-100 text-green-700 p-4 rounded">
         Booking request sent! The resort owner will contact you shortly.
+
+        <button
+          onClick={handleNewBooking}
+          className="mt-4 w-full bg-[#29b55a] text-white p-2 rounded"
+        >
+          Create New Booking
+        </button>
       </div>
     )
   }
@@ -113,30 +141,32 @@ export default function BookingForm({ resort }) {
       )}
 
       <input
+        type="text"
         name="name"
         value={form.name}
-        onChange={handleChange}
-        placeholder="Name"
+        placeholder="Guest Name"
         className="w-full border p-2 rounded"
+        onChange={handleChange}
         required
       />
 
       <input
+        type="text"
         name="contact"
         value={form.contact}
-        onChange={handleChange}
-        placeholder="Contact number"
+        placeholder="Contact Number"
         className="w-full border p-2 rounded"
-        required
+        onChange={handleChange}
       />
 
       <div className="grid grid-cols-2 gap-2">
         <input
+          min={new Date().toISOString().split('T')[0]}
           type="date"
           name="start_date"
           value={form.start_date}
-          onChange={handleChange}
           className="border p-2 rounded"
+          onChange={handleChange}
           required
         />
 
@@ -144,19 +174,20 @@ export default function BookingForm({ resort }) {
           type="time"
           name="start_time"
           value={form.start_time}
-          onChange={handleChange}
           className="border p-2 rounded"
+          onChange={handleChange}
           required
         />
       </div>
 
       <div className="grid grid-cols-2 gap-2">
         <input
+          min={new Date().toISOString().split('T')[0]}
           type="date"
           name="end_date"
           value={form.end_date}
-          onChange={handleChange}
           className="border p-2 rounded"
+          onChange={handleChange}
           required
         />
 
@@ -164,8 +195,8 @@ export default function BookingForm({ resort }) {
           type="time"
           name="end_time"
           value={form.end_time}
-          onChange={handleChange}
           className="border p-2 rounded"
+          onChange={handleChange}
           required
         />
       </div>
@@ -174,22 +205,32 @@ export default function BookingForm({ resort }) {
         type="number"
         name="guests"
         value={form.guests}
-        onChange={handleChange}
-        placeholder="Guests"
+        placeholder="Number of guests"
         className="w-full border p-2 rounded"
+        onChange={handleChange}
       />
 
       <textarea
         name="notes"
         value={form.notes}
-        onChange={handleChange}
         placeholder="Notes"
         className="w-full border p-2 rounded"
+        onChange={handleChange}
       />
 
       <button
-        disabled={loading}
-        className="w-full bg-green-600 text-white p-2 rounded disabled:bg-gray-400"
+        disabled={
+          loading
+          || form.name === ''
+          || form.contact === ''
+          || !form.start_date
+          || !form.start_time
+          || !form.end_date
+          || !form.end_time
+          || !form.guests
+          || form.notes === ''
+        }
+        className="w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-400"
       >
         {loading ? 'Submitting...' : 'Submit Booking'}
       </button>

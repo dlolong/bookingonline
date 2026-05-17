@@ -4,187 +4,196 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { format, isSameDay } from 'date-fns'
 import { useApp } from '@/context/AppContext'
+import Loader from '@/components/Loader'
+import { Flag, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
 
 export default function DashboardBookings() {
-     const { selectedResort, loading } = useApp()
-    const [bookings, setBookings] = useState([])
+    const {
+        selectedResort,
+        pendingBookings,
+        refreshBookings,
+        initialLoading,
+        refreshing,
+        showToast,
+    } = useApp()
 
     const [updateBookingProgress, setUpdateBookingProgress] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
+    const [loadingBookings, setLoadingBookings] = useState(false)
+    const [confirmAction, setConfirmAction] = useState(null)
 
-    // ✅ Fetch bookings using selectedResort.id
-    const fetchBookings = useCallback(async () => {
-        if (!selectedResort?.id) return
-
-        const { data, error } = await supabase
-            .from('bookings')
-            .select('*')
-            .eq('resort_id', selectedResort.id)
-            .eq('status', 'pending')
-            .order('created_at', { ascending: false })
-
-        if (error) {
-            console.error(error)
-            return
-        }
-
-        setBookings(data || [])
-    }, [selectedResort])
-
-    // ✅ Trigger fetch when selectedResort is ready
-    useEffect(() => {
-        if (selectedResort?.id) {
-            fetchBookings()
-        }
-    }, [selectedResort, fetchBookings])
-
-    
-    const updateStatus = async (id, status) => {
-        
-        if (!selectedResort) {
-            setErrorMessage('User or selectedResort not found.')
-            return
-        }
+    const updateBookingStatus = async () => {
+        if (!confirmAction) return
 
         setUpdateBookingProgress(true)
-        setErrorMessage('')
 
-        const newStart = new Date(`${form.start_date}T${form.start_time}`)
-        const newEnd = new Date(`${form.end_date}T${form.end_time}`)
+        if (confirmAction.status === "confirmed") {
+            const newStart = new Date(confirmAction?.booking?.start_datetime)
+            const newEnd = new Date(confirmAction?.booking?.end_datetime)
 
-        if (newEnd <= newStart) {
-            setErrorMessage('Check-out must be later than check-in.')
-            setUpdateBookingProgress(false)
-            return
+            const hasConflict = (pendingBookings || []).some((booking) => {
+                const existingStart = new Date(
+                    booking.start_datetime
+                )
+
+                const existingEnd = new Date(
+                    booking.end_datetime
+                )
+
+                return newStart < existingEnd && newEnd > existingStart
+            })
+
+            if (hasConflict) {
+                showToast({
+                    type: 'error',
+                    message: 'Selected date and time are already booked.',
+                })
+
+                setUpdateBookingProgress(false)
+                return
+            }
         }
 
-        const { data: existingBookings, error: bookingError } = await supabase
-            .from('bookings')
-            .select('*')
-            .eq('resort_id', selectedResort.id)
-            .in('status', ['pending'])
+        await supabase.from('bookings').update({ status: confirmAction.status }).eq('id', confirmAction.booking.id)
+        setConfirmAction(null)
+        await refreshBookings()
+        setUpdateBookingProgress(false)
+    }
 
-        if (bookingError) {
-            console.error(bookingError)
-            setErrorMessage('Failed to check existing bookings.')
-            setUpdateBookingProgress(false)
-            return
-        }
-
-        const hasConflict = (existingBookings || []).some((booking) => {
-            const existingStart = new Date(
-                booking.start_datetime
-            )
-
-            const existingEnd = new Date(
-                booking.end_datetime
-            )
-
-            return newStart <= existingEnd && newEnd >= existingStart
-        })
-
-        if (hasConflict) {
-            setErrorMessage('Selected date and time are already booked.')
-            setUpdateBookingProgress(false)
-            return
-        }
-
-        await supabase.from('bookings').update({ status }).eq('id', id)
-        fetchBookings()
+    if (initialLoading) {
+        return <Loader text="Loading bookings..." />
     }
 
     return (
-        <div className="p-6">
-            <h1 className="text-xl font-bold mb-4">Bookings</h1>
+        <div className="bg-white rounded-2xl shadow-md p-4">
+            {confirmAction && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl p-6">
+                        <h3 className="text-lg font-bold mb-2">
+                            Are you sure?
+                        </h3>
 
-            <div className="space-y-4">
-                {bookings && bookings.length > 0 ? (bookings).map((booking) => (
-                    
-                                  <div
-                                    key={booking.id}
-                                    className="border rounded-xl p-4"
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <h3 className="font-bold text-lg">
-                                        {booking.name}
-                                      </h3>
-                    
-                                      <span
-                                        className={`px-3 py-1 rounded-full text-sm text-white ${
-                                          booking.status === 'confirmed'
-                                            ? 'bg-green-500'
-                                            : 'bg-yellow-400 text-black'
-                                        }`}
-                                      >
-                                        {booking.status}
-                                      </span>
-                                    </div>
-                    
-                                    <div className="mt-3 space-y-1 text-sm text-gray-600">
-                                      <p>
-                                        📅 {`${format(new Date(booking.start_datetime), 'MMMM d, yyyy hh:mm a')} → ${format(new Date(booking.end_datetime), 'MMMM d, yyyy hh:mm a')}`}
-                                      </p>
-                    
-                                      <p>
-                                        👥 Guests: {booking.guests}
-                                      </p>
-                    
-                                      <p>
-                                        📞 {booking.contact}
-                                      </p>
-                    
-                                      {booking.notes && (
-                                        <p>
-                                          📝 {booking.notes}
-                                        </p>
-                                      )}
-                                    </div>
+                        <p className="text-sm text-gray-600 mb-5">
+                            You are about to{' '}
+                            <strong>{confirmAction.status === "confirmed" ? "Confirm" : "Remove"}</strong>{' '}
+                            booking for{' '}
+                            <strong>{confirmAction.booking.name}</strong>.
+                        </p>
 
-                                      <div className="flex gap-2 mt-2">
+                        <div className="flex gap-2 justify-end">
                             <button
-                                onClick={() => updateStatus(b.id, 'confirmed')}
-                                className="bg-green-600 text-white px-2 py-1 rounded"
+                                onClick={() => setConfirmAction(null)}
+                                disabled={updateBookingProgress}
+                                className="px-4 py-2 rounded border w-32"
                             >
-                                Confirm
+                                No
                             </button>
 
                             <button
-                                onClick={() => updateStatus(b.id, 'cancelled')}
-                                className="bg-red-600 text-white px-2 py-1 rounded"
+                                onClick={updateBookingStatus}
+                                disabled={updateBookingProgress}
+                                className={`px-4 py-2 rounded text-white ${confirmAction.status === 'confirmed'
+                                    ? 'bg-[#29b55a]'
+                                    : 'bg-red-600'
+                                    }`}
                             >
-                                Cancel
+                                {updateBookingProgress ? 'Processing...' : 'Yes, proceed'}
                             </button>
                         </div>
-                                  </div>
-                    
-                    // <div key={b.id} className="border p-4 rounded">
-                    //     <p><strong>{b.name}</strong></p>
-                    //     <p>{b.start_datetime} → {b.end_datetime}</p>
-                    //     <p>Guests: {b.guests}</p>
-                    //     <p>Status: {b.status}</p>
-
-                    //     <div className="flex gap-2 mt-2">
-                    //         <button
-                    //             onClick={() => updateStatus(b.id, 'confirmed')}
-                    //             className="bg-green-600 text-white px-2 py-1 rounded"
-                    //         >
-                    //             Confirm
-                    //         </button>
-
-                    //         <button
-                    //             onClick={() => updateStatus(b.id, 'cancelled')}
-                    //             className="bg-red-600 text-white px-2 py-1 rounded"
-                    //         >
-                    //             Cancel
-                    //         </button>
-                    //     </div>
-                    // </div>
-                )) : (
-                    <div>
-                        <p className='text-xs'>No Record Found</p>
                     </div>
+                </div>
+            )}
+
+            <div className="flex items-center justify-between mb-4">
+                <div className='sr-only md:not-sr-only'>
+                    <h2 className="text-xl font-bold">Pending</h2>
+                </div>
+
+                {(refreshing || loadingBookings) && (
+                    <span className="text-xs text-gray-400">
+                        Syncing...
+                    </span>
                 )}
             </div>
+
+            {pendingBookings.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                    No pending bookings yet.
+                </p>
+            ) : (
+                <div className="space-y-3">
+                    {pendingBookings.map((booking) => (
+                        <div
+                            key={booking.id}
+                            className="border-1 border-[#ffe8c8] bg-[#ffee7f1f] rounded-xl p-4"
+                        >
+                            <div className="items-center justify-between">
+                                <h6 className='flex items-center'>
+                                    <MapPin width={16} className='text-gray-400 mr-2' /> {`${format(new Date(booking.start_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
+                                </h6>
+                                <h6 className='flex items-center'>
+                                    <Flag width={16} className='text-gray-400 mr-2' /> {`${format(new Date(booking.end_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
+                                </h6>
+                            </div>
+
+                            <div className='grid grid-cols-2'>
+
+                                <div className="mt-3 space-y-0 text-sm text-black-600">
+                                    <p className='flex items-center'>
+                                        <User width={16} className='text-gray-400 mr-2' /> {booking.name}
+                                    </p>
+                                    <p className='flex items-center'>
+                                        <Users width={16} className='text-gray-400 mr-2' /> {booking.guests} pax
+                                    </p>
+
+                                    <p className='flex items-center'>
+                                        <Phone width={16} className='text-gray-400 mr-2' /> {booking.contact}
+                                    </p>
+
+                                    {booking.notes && (
+                                        <p className='flex items-center'>
+                                            <NotepadText width={16} className='text-gray-400 mr-2' /> {booking.notes}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="flex justify-self-end">
+                                    {updateBookingProgress && confirmAction?.booking?.id === booking.id ? (
+                                        <Loader />
+                                    ) : (
+                                        <div className='grid grid-flow-col grid-rows-2 gap-4"'>
+                                            <button
+                                                onClick={() =>
+                                                    setConfirmAction({
+                                                        booking,
+                                                        status: 'confirmed',
+                                                    })
+                                                }
+                                                className="bg-[#29b55a] text-white px-3 py-1 rounded mb-1"
+                                            >
+                                                Confirm
+                                            </button>
+
+                                            <button
+                                                onClick={() => setConfirmAction({
+                                                    booking,
+                                                    status: 'removed',
+                                                })}
+                                                className="bg-red-200 text-red-800 px-2 py-1 rounded mt-1"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    )}
+
+
+
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     )
 }

@@ -12,7 +12,7 @@ export default function Home() {
 
       <button
         onClick={() => router.push('/signup')}
-        className="mt-6 bg-green-600 text-white px-6 py-3 rounded"
+        className="mt-6 bg-[#29b55a] text-white px-6 py-3 rounded"
       >
         Try Free
       </button>

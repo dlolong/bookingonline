@@ -1,167 +1,379 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { DayPicker, DayProps, useDayPicker } from 'react-day-picker';
+import { DayPicker, defaultLocale } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
 import { format, isSameDay } from 'date-fns'
-import './custom-calendar.css'; // See CSS below
+import { Flag, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
 
-function formatDateTime(date, time) {
-  const dt = new Date(`${date}T${time}`)
-  return format(dt, 'MM-dd-yy HH:mm')
+import { supabase } from '@/lib/supabaseClient'
+import { useApp } from '@/context/AppContext'
+
+const bookingColors = [
+  '#a5ceb3', // pastel green
+  '#f3ca4e', // pastel orange
+  '#a9c2e0', // pastel blue
+  '#e4a1e7', // pastel purple
+  '#86c8ba', // pastel red
+  '#a5d472', // pastel teal
+  '#74dce0', // pastel yellow
+  '#abd189', // pastel green
+  '#dcd464', // pastel orange
+  '#b99bd5', // pastel blue
+  '#ea83d9', // pastel purple
+  '#e7b950', // pastel red
+  '#4caf9b', // pastel teal
+  '#c0ca3c', // pastel yellow
+]
+
+function getBookingColor(booking, bookings) {
+  const index = bookings.findIndex((b) => b.id === booking.id)
+  return bookingColors[index % bookingColors.length]
+}
+
+
+function formatDateTime(datetime) {
+  if (!datetime) return ''
+  return format(new Date(datetime), 'MMMM dd yy hh:mm a')
+}
+
+function getBookingsForDay(day, bookings) {
+  return bookings.filter((booking) => {
+    const start = new Date(booking.start_datetime)
+    const end = new Date(booking.end_datetime)
+
+    const dayStart = new Date(day)
+    dayStart.setHours(0, 0, 0, 0)
+
+    const dayEnd = new Date(day)
+    dayEnd.setHours(23, 59, 59, 999)
+
+    return start <= dayEnd && end >= dayStart
+  })
+}
+
+function getSlotForDay(day, booking) {
+  const start = new Date(booking.start_datetime)
+  const end = new Date(booking.end_datetime)
+
+  const isStartDay = isSameDay(day, start)
+  const isEndDay = isSameDay(day, end)
+
+  const startHour = start.getHours()
+  const endHour = end.getHours()
+
+  // Overnight booking:
+  // May 17 7PM → May 18 6AM
+  if (isStartDay && startHour >= 6) return 'pm'
+  if (isEndDay && endHour <= 18) return 'am'
+
+  // Same-day booking
+  if (isStartDay && isEndDay) {
+    if (startHour < 18 && endHour <= 6) return 'am'
+    if (startHour >= 6 && endHour > 18) return 'pm'
+  }
+
+  return 'full'
 }
 
 export default function CalendarView({ bookings = [] }) {
-  const [selectedDate, setSelectedDate] = useState(new Date())
+  const { refreshBookings } = useApp()
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [selectedBookings, setSelectedBookings] = useState([])
+  const [openModal, setOpenModal] = useState(false)
 
-  // Confirmed bookings
-  const confirmedDays = useMemo(() => {
-    return bookings
-      .filter((b) => b.status === 'confirmed')
-      .map((b) => ({
-        from: new Date(b.start_datetime),
-        to: new Date(b.end_datetime),
-      }))
-  }, [bookings])
+  const [cancelBooking, setCancelBooking] = useState(null)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelling, setCancelling] = useState(false)
 
-  // Pending bookings
-  const pendingDays = useMemo(() => {
-    return bookings
-      .filter((b) => b.status === 'pending')
-      .map((b) => ({
-        from: new Date(b.start_datetime),
-        to: new Date(b.end_datetime),
-      }))
-  }, [bookings])
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
-  // Bookings for selected date
-  const selectedBookings = bookings.filter((b) => {
-    const start = new Date(b.start_datetime)
-    const end = new Date(b.end_datetime)
+  const handleDayClick = (day) => {
+    setSelectedDate(day)
 
-    return isSameDay(selectedDate, start) || isSameDay(selectedDate, end) 
-    // return selectedDate >= start && selectedDate <= end
-  })
+    const bookingsForDay = bookings.filter((booking) => {
+      const start = new Date(booking.start_datetime)
+      const end = new Date(booking.end_datetime)
+
+      start.setHours(0, 0, 0, 0)
+      end.setHours(23, 59, 59, 999)
+
+      return day >= start && day <= end
+    })
+
+    if (bookingsForDay.length > 0) {
+      setSelectedBookings(bookingsForDay)
+      setOpenModal(true)
+    }
+  }
+
+  const closeModal = () => {
+    setOpenModal(false)
+    setSelectedBookings([])
+  }
+
+  const handleCancelBooking = async () => {
+    if (!cancelBooking) return
+
+    if (!cancelReason.trim()) {
+      alert('Please enter cancellation reason.')
+      return
+    }
+
+    setCancelling(true)
+
+    const { error } = await supabase
+      .from('bookings')
+      .update({
+        status: 'cancelled',
+        cancellation_reason: cancelReason,
+        cancelled_at: new Date().toISOString(),
+      })
+      .eq('id', cancelBooking.id)
+
+    setCancelling(false)
+
+    if (error) {
+      console.error(error)
+      alert('Failed to cancel booking.')
+      return
+    }
+
+    setCancelBooking(null)
+    setCancelReason('')
+    setOpenModal(false)
+    await refreshBookings()
+  }
 
   return (
-    <div className="grid lg:grid-cols-[60%_1fr] gap-6">
-      {/* Calendar */}
-      <div style={{ width: "100%" }} className="bg-white rounded-2xl shadow-md p-4">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold">
-            Booking Calendar
-          </h2>
+    <div className='[text-align:-webkit-center]'>
+      <DayPicker
+        weekStartsOn={1}
+        mode="single"
+        selected={selectedDate}
+        onDayClick={handleDayClick}
+        disabled={{ before: today }}
+        components={{
+          DayButton: (props) => {
+            const day = props.day.date
+            const isToday = new Date().toDateString() === day.toDateString()
 
-          <p className="text-gray-500 text-sm">
-            Track resort reservations easily
-          </p>
-        </div>
+            const dayBookings = getBookingsForDay(day, bookings)
 
-      <div style={{ width: "100%" }}>
-        <DayPicker
-          disabled={{ before: new Date() }}
-          mode="single"
-          selected={selectedDate}
-          onSelect={setSelectedDate}
-          // components={SplitDay}
-          modifiers={{
-            confirmed: confirmedDays,
-            pending: pendingDays,
-          }}
-          modifiersStyles={{
-            confirmed: {
-              backgroundColor: '#22c55e',
-              color: 'white',
-              borderRadius: '60px',
-              textAlign: "-webkit-center"
-            },
-            pending: {
-              backgroundColor: '#facc15',
-              color: 'black',
-              borderRadius: '60px',
-            },
-          }}
-          classNames={{
-            day: "h-8 w-8 text-lg", // Large cells
-            day_selected: "h-24 w-24 bg-blue-600 text-white",
-            caption: "text-2xl font-bold p-4", // Large title
-            table: "w-full",
-            month: "p-4"
-          }}
-        />
-        </div>
+            const amBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'am')
+            const pmBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'pm')
+            const fullBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'full')
 
-        {/* Legend */}
-        <div className="flex gap-4 mt-6 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-green-500" />
-            Confirmed
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-yellow-400" />
-            Pending
-          </div>
-        </div>
-      </div>
-
-      {/* Booking Details */}
-      <div className="bg-white rounded-2xl shadow-md p-4">
-        <h2 className="text-xl font-bold mb-2">
-          {selectedDate && format(selectedDate, 'MMMM d, yyyy')}
-        </h2>
-
-        {selectedBookings.length === 0 ? (
-          <div className="text-gray-500 mt-6">
-            No bookings for this date
-          </div>
-        ) : (
-          <div className="space-y-4 mt-4">
-            {selectedBookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="border rounded-xl p-4"
+            return (
+              <button
+                {...props}
+                type="button"
+                className={
+                  `relative w-10 h-10 md:w-14 md:h-14 rounded-full overflow-hidden flex items-center justify-center transition
+        ${isToday ? 'ring-2 ring-blue-500 font-bold' : 'border-gray-200'}
+        hover:scale-105`}
               >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-lg">
-                    {booking.name}
-                  </h3>
-
+                {/* Full day */}
+                {fullBooking && (
                   <span
-                    className={`px-3 py-1 rounded-full text-sm text-white ${
-                      booking.status === 'confirmed'
-                        ? 'bg-green-500'
-                        : 'bg-yellow-400 text-black'
-                    }`}
-                  >
-                    {booking.status}
-                  </span>
-                </div>
+                    className="absolute inset-0 shadow-inner"
+                    style={{
+                      backgroundColor: getBookingColor(fullBooking, bookings),
+                    }}
+                  />
+                )}
 
-                <div className="mt-3 space-y-1 text-sm text-gray-600">
-                  <p>
-                    📅 {`${format(new Date(booking.start_datetime), 'MMMM d, yyyy hh:mm a')} → ${format(new Date(booking.end_datetime), 'MMMM d, yyyy hh:mm a')}`}
-                  </p>
+                {/* AM */}
+                {amBooking && (
+                  <span
+                    className="absolute top-0 left-0 w-full h-1/2"
+                    style={{
+                      backgroundColor: getBookingColor(amBooking, bookings),
+                    }}
+                  />
+                )}
 
-                  <p>
-                    👥 Guests: {booking.guests}
-                  </p>
+                {/* PM */}
+                {pmBooking && (
+                  <span
+                    className="absolute bottom-0 left-0 w-full h-1/2"
+                    style={{
+                      backgroundColor: getBookingColor(pmBooking, bookings),
+                    }}
+                  />
+                )}
 
-                  <p>
-                    📞 {booking.contact}
-                  </p>
+                {/* Today highlight overlay (subtle) */}
+                {isToday && (
+                  <span className="absolute inset-0 bg-white/40 rounded-full" />
+                )}
 
-                  {booking.notes && (
-                    <p>
-                      📝 {booking.notes}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
+                {/* Day number */}
+                <span className="relative z-10 text-sm font-semibold text-gray-800">
+                  {format(day, 'd')}
+                </span>
+              </button>
+            )
+          },
+        }}
+      />
+      {/* <DayPicker
+        weekStartsOn={1}
+        mode="single"
+        selected={selectedDate}
+        onDayClick={handleDayClick}
+        disabled={{ before: today }}
+        // modifiers={{
+        //   confirmed: confirmedDays,
+        //   pending: pendingDays,
+        // }}
+        // modifiersStyles={{
+        //   confirmed: {
+        //     backgroundColor: '#22c55e',
+        //     color: 'white',
+        //     borderRadius: '999px',
+        //   },
+        //   pending: {
+        //     backgroundColor: '#facc15',
+        //     color: 'black',
+        //     borderRadius: '999px',
+        //   },
+        // }}
+        // className="w-full"
+        // classNames={{
+        //   table: 'w-full',
+        //   head_row: 'grid grid-cols-7',
+        //   row: 'grid grid-cols-7',
+        //   cell: 'flex justify-center',
+        //   day_selected: `
+        //     bg-[#29b55a] text-white
+        //     scale-105
+        //     ring-2 ring-green-300
+        //     font-semibold
+        //   `,
+        //   day_today: 'border border-gray-400',
+        //   day_outside: 'text-gray-300',
+        //   day_disabled: 'text-gray-300 opacity-50',
+        // }}
+      /> */}
+
+      {cancelBooking && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl p-6">
+            <h3 className="text-lg font-bold mb-2">
+              Cancel Booking
+            </h3>
+
+            <p className="text-sm text-gray-600 mb-4">
+              Please provide a reason for cancelling{' '}
+              <strong>{cancelBooking.name}</strong>'s booking.
+            </p>
+
+            <textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Reason for cancellation"
+              className="w-full border rounded p-3 min-h-[100px]"
+            />
+
+            <div className="flex gap-2 justify-end mt-4">
+              <button
+                onClick={() => {
+                  setCancelBooking(null)
+                  setCancelReason('')
+                }}
+                disabled={cancelling}
+                className="px-4 py-2 rounded border"
+              >
+                Close
+              </button>
+
+              <button
+                onClick={handleCancelBooking}
+                disabled={cancelReason === "" || cancelling}
+                className="px-4 py-2 rounded bg-red-600 text-white disabled:bg-gray-400"
+              >
+                {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
+              </button>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {openModal && (
+        <div className="fixed inset-0 bg-black/40 flex justify-center z-50 p-4">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
+            <div className="flex justify-between mb-4">
+              <h3 className="text-lg font-bold">
+                Bookings for{' '}
+                {selectedDate
+                  ? format(selectedDate, 'MM-dd-yy')
+                  : ''}
+              </h3>
+
+              <button
+                onClick={closeModal}
+                className="text-gray-500 hover:text-black text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+              {selectedBookings.map((booking) => (
+                <div
+                  key={booking.id}
+                  className="border-1 border-[#b7ddbb] rounded-xl p-4"
+                >
+                  <div className="items-center justify-between">
+                    <h6 className='flex items-center'>
+                      <MapPin width={16} className='text-gray-400 mr-2' /> {`${format(new Date(booking.start_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
+                    </h6>
+                    <h6 className='flex items-center'>
+                      <Flag width={16} className='text-gray-400 mr-2' /> {`${format(new Date(booking.end_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
+                    </h6>
+                  </div>
+
+                  <div className=''>
+
+                    <div className="mt-3 space-y-0 text-sm text-black-600">
+                      <p className='flex items-center'>
+                        <User width={16} className='text-gray-400 mr-2' /> {booking.name}
+                      </p>
+                      <p className='flex items-center'>
+                        <Users width={16} className='text-gray-400 mr-2' /> {booking.guests} pax
+                      </p>
+
+                      <p className='flex items-center'>
+                        <Phone width={16} className='text-gray-400 mr-2' /> {booking.contact}
+                      </p>
+
+                      {booking.notes && (
+                        <p className='flex items-center'>
+                          <NotepadText width={16} className='text-gray-400 mr-2' /> {booking.notes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <button
+                      onClick={() => {
+                        setCancelBooking(booking)
+                        setCancelReason('')
+                      }}
+                      className="mt-4 p-2 bg-red-400 text-white py-2 rounded"
+                    >
+                      Cancel Booking
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

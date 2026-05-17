@@ -31,7 +31,7 @@ export default async function PublicBookingPage(props) {
 
   return (
     <div className="p-6 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-2">
+      <h1 className="text-2xl font-bold mb-2 capitalize">
         {resort.name}
       </h1>
 

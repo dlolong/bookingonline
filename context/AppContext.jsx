@@ -2,35 +2,117 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import { usePathname, useRouter } from 'next/navigation'
 
 const AppContext = createContext(null)
 
 export function AppProvider({ children }) {
+  const router = useRouter()
+  const pathname = usePathname()
+
   const [user, setUser] = useState(null)
   const [resorts, setResorts] = useState([])
   const [selectedResort, setSelectedResortState] = useState(null)
-  const [loading, setLoading] = useState(true)
 
-  // 🔥 Save selected resort to localStorage
-  const setSelectedResort = (resort) => {
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const [confirmedBookings, setConfirmedBookings] = useState([])
+  const [pendingBookings, setPendingBookings] = useState([])
+  const [bookingsLoading, setBookingsLoading] = useState(false)
+
+  const [toast, setToast] = useState(null)
+
+  const publicRoutes = [
+    '/login',
+    '/signup',
+    '/public-booking',
+  ]
+const isPublicRoute = publicRoutes.some((route) =>
+  pathname.startsWith(route)
+)
+
+  const showToast = ({ type = 'success', message }) => {
+    setToast({ type, message })
+
+    setTimeout(() => {
+      setToast(null)
+    }, 3000)
+  }
+
+  const hideToast = () => setToast(null)
+
+  const logout = async () => {
+    await supabase.auth.signOut()
+
+    setUser(null)
+    setResorts([])
+    setSelectedResortState(null)
+    setConfirmedBookings([])
+    setPendingBookings([])
+    localStorage.removeItem('selected_resort_id')
+
+    router.push('/login')
+  }
+
+  const setSelectedResort = async (resort) => {
     setSelectedResortState(resort)
 
     if (resort?.id) {
       localStorage.setItem('selected_resort_id', resort.id)
+      await refreshBookings(resort.id)
     } else {
       localStorage.removeItem('selected_resort_id')
+      setConfirmedBookings([])
+      setPendingBookings([])
     }
   }
 
-  // 🔥 Load everything
-  const loadAppData = async (currentUser) => {
-    setLoading(true)
+  const refreshBookings = async (resortId = selectedResort?.id) => {
+    if (!resortId) {
+      setConfirmedBookings([])
+      setPendingBookings([])
+      return
+    }
+
+    setBookingsLoading(true)
+
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('resort_id', resortId)
+      .in('status', ['confirmed', 'pending'])
+      .order('start_datetime', { ascending: true })
+
+    if (error) {
+      console.error(error)
+      setBookingsLoading(false)
+      return
+    }
+
+    const bookings = data || []
+
+    setConfirmedBookings(
+      bookings.filter((b) => b.status === 'confirmed')
+    )
+
+    setPendingBookings(
+      bookings.filter((b) => b.status === 'pending')
+    )
+    setBookingsLoading(false)
+  }
+
+  const loadAppData = async (currentUser, silent = false) => {
+    if (!silent) setInitialLoading(true)
+    if (silent) setRefreshing(true)
 
     if (!currentUser) {
       setUser(null)
       setResorts([])
-      setSelectedResort(null)
-      setLoading(false)
+      setSelectedResortState(null)
+      localStorage.removeItem('selected_resort_id')
+      setInitialLoading(false)
+      setRefreshing(false)
       return
     }
 
@@ -42,51 +124,53 @@ export function AppProvider({ children }) {
       .eq('user_id', currentUser.id)
       .order('created_at')
 
-    if (error) {
-      console.error(error)
-      setLoading(false)
-      return
+    if (!error) {
+      const resortsList = resortsData || []
+      const storedId = localStorage.getItem('selected_resort_id')
+
+      setResorts(resortsList)
+
+      const selected =
+        resortsList.find((r) => r.id === storedId) ||
+        resortsList[0] ||
+        null
+
+      setSelectedResortState(selected)
+
+      if (selected?.id) {
+        await refreshBookings(selected.id)
+      }
     }
 
-    const resortsList = resortsData || []
-    setResorts(resortsList)
-
-    // 🔥 Restore selected resort from localStorage
-    // const storedId = localStorage.getItem('selected_resort_id')
-    const storedId =
-      typeof window !== 'undefined'
-        ? localStorage.getItem('selected_resort_id')
-        : null
-
-    let selected =
-      resortsList.find((r) => r.id === storedId) ||
-      resortsList[0] ||
-      null
-
-    setSelectedResort(selected)
-
-    setLoading(false)
+    setInitialLoading(false)
+    setRefreshing(false)
   }
 
   useEffect(() => {
-    // Initial load
-    supabase.auth.getUser().then(({ data }) => {
-      loadAppData(data.user)
+    supabase.auth.getSession().then(({ data }) => {
+      loadAppData(data.session?.user || null)
     })
 
-    // Auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const currentUser = session?.user || null
-        await loadAppData(currentUser)
-      }
-    )
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        loadAppData(null, true)
+        setUser(null)
+        setResorts([])
+        setSelectedResortState(null)
 
-    return () => {
-      subscription.unsubscribe()
-    }
+        if (!isPublicRoute) {
+          router.replace('/login')
+        }
+        return
+      }
+
+      // silent refresh = no full-page loader
+      loadAppData(session.user, true)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   return (
@@ -96,8 +180,20 @@ export function AppProvider({ children }) {
         resorts,
         selectedResort,
         setSelectedResort,
-        loading,
-        refreshAppData: () => loadAppData(user),
+
+        confirmedBookings,
+        pendingBookings,
+        bookingsLoading,
+        refreshBookings,
+
+        initialLoading,
+        refreshing,
+        refreshAppData: () => loadAppData(user, true),
+        logout,
+
+        toast,
+        showToast,
+        hideToast,
       }}
     >
       {children}

@@ -9,7 +9,7 @@ export default function AddBookingModal({
     onClose,
     onSuccess,
 }) {
-    const { selectedResort, loading } = useApp()
+    const { selectedResort, refreshBookings } = useApp()
     const [addBookingProgress, setAddBookingProgress] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
 
@@ -19,7 +19,7 @@ export default function AddBookingModal({
         start_date: '',
         start_time: '07:00',
         end_date: '',
-        end_time: '15:00',
+        end_time: '17:00',
         guests: '',
         notes: '',
     })
@@ -68,12 +68,12 @@ export default function AddBookingModal({
             .from('bookings')
             .select('*')
             .eq('resort_id', selectedResort.id)
-            .in('status', ['confirmed', 'pending'])
+            .in('status', ['confirmed'])
 
         if (bookingError) {
             console.error(bookingError)
             setErrorMessage('Failed to check existing bookings.')
-            setAddBookingProgres(false)
+            setAddBookingProgress(false)
             return
         }
 
@@ -86,7 +86,7 @@ export default function AddBookingModal({
                 booking.end_datetime
             )
 
-            return newStart <= existingEnd && newEnd >= existingStart
+            return newStart < existingEnd && newEnd > existingStart
         })
 
         if (hasConflict) {
@@ -108,7 +108,7 @@ export default function AddBookingModal({
             },
         ])
 
-        setAddBookingProgres(false)
+        setAddBookingProgress(false)
 
         if (error) {
             console.error(error)
@@ -116,6 +116,7 @@ export default function AddBookingModal({
             return
         }
 
+        await refreshBookings()
         resetForm()
         onSuccess?.()
         onClose()
@@ -130,7 +131,7 @@ export default function AddBookingModal({
                     <div>
                         <h2 className="text-xl font-bold">Add Booking</h2>
                         {selectedResort && (
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 capitalize">
                                 {selectedResort.name}
                             </p>
                         )}
@@ -211,7 +212,7 @@ export default function AddBookingModal({
                         type="number"
                         name="guests"
                         value={form.guests}
-                        placeholder="Guests"
+                        placeholder="Number of guests"
                         className="w-full border p-2 rounded"
                         onChange={handleChange}
                     />
@@ -225,8 +226,18 @@ export default function AddBookingModal({
                     />
 
                     <button
-                        disabled={addBookingProgress || !selectedResort}
-                        className="w-full bg-green-600 text-white py-2 rounded disabled:bg-gray-400"
+                        disabled={
+                            form.name === ''
+                            || form.contact === ''
+                            || !form.start_date
+                            || !form.start_time
+                            || !form.end_date
+                            || !form.end_time
+                            || !form.guests
+                            || form.notes === ''
+                            && (addBookingProgress || !selectedResort)
+                        }
+                        className="w-full bg-[#29b55a] text-white py-2 rounded disabled:bg-gray-400"
                     >
                         {addBookingProgress ? 'Saving...' : 'Save Booking'}
                     </button>

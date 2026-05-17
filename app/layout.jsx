@@ -1,6 +1,7 @@
 import './globals.css'
 import { AppProvider } from '@/context/AppContext'
 import Navbar from '@/components/Navbar'
+import Toast from '@/components/Toast'
 
 export default function RootLayout({ children }) {
   return (
@@ -8,7 +9,10 @@ export default function RootLayout({ children }) {
       <body>
         <AppProvider>
           <Navbar />
-          {children}
+          <Toast />
+          <div className="pt-16">
+            {children}
+          </div>
         </AppProvider>
       </body>
     </html>
