@@ -84,7 +84,7 @@ export default function DashboardBookings() {
                             <button
                                 onClick={() => setConfirmAction(null)}
                                 disabled={updateBookingProgress}
-                                className="px-4 py-2 rounded border w-32"
+                                className="cursor-pointer  px-4 py-2 rounded border w-32"
                             >
                                 No
                             </button>
@@ -92,7 +92,7 @@ export default function DashboardBookings() {
                             <button
                                 onClick={updateBookingStatus}
                                 disabled={updateBookingProgress}
-                                className={`px-4 py-2 rounded text-white ${confirmAction.status === 'confirmed'
+                                className={`cursor-pointer px-4 py-2 rounded text-white ${confirmAction.status === 'confirmed'
                                     ? 'bg-[#29b55a]'
                                     : 'bg-red-600'
                                     }`}
@@ -169,7 +169,7 @@ export default function DashboardBookings() {
                                                         status: 'confirmed',
                                                     })
                                                 }
-                                                className="bg-[#29b55a] text-white px-3 py-1 rounded mb-1"
+                                                className="cursor-pointer bg-[#29b55a] text-white px-3 py-1 rounded mb-1"
                                             >
                                                 Confirm
                                             </button>
@@ -179,7 +179,7 @@ export default function DashboardBookings() {
                                                     booking,
                                                     status: 'removed',
                                                 })}
-                                                className="bg-red-200 text-red-800 px-2 py-1 rounded mt-1"
+                                                className="cursor-pointer bg-red-200 text-red-800 px-2 py-1 rounded mt-1"
                                             >
                                                 Remove
                                             </button>

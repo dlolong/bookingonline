@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+import { X } from 'lucide-react'
 
 function createSlug(text) {
   return text
@@ -59,12 +60,23 @@ export default function OnboardingPage() {
     router.push('/dashboard')
   }
 
+  const handleClose = () => {
+     router.push('/dashboard')
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
       <div className="bg-white w-full max-w-md rounded-2xl shadow p-6">
-        <h1 className="text-2xl font-bold mb-2">
-          Set up your resort
-        </h1>
+        
+         <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-xl font-bold">Add Resort</h2>
+                    </div>
+
+                    <button className='cursor-pointer' onClick={handleClose}>
+                        <X height={16}/>
+                    </button>
+                </div>
 
         <p className="text-gray-500 mb-6">
           Create your booking link and dashboard.
@@ -85,7 +97,7 @@ export default function OnboardingPage() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Villa Jose Private Resort"
+              placeholder="Enter the resort name"
               className="w-full border p-3 rounded mt-1"
               required
             />

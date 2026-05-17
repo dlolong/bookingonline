@@ -3,17 +3,20 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useApp } from '@/context/AppContext'
+import { format } from 'date-fns'
+import { X } from 'lucide-react'
 
 export default function AddBookingModal({
     open,
     onClose,
     onSuccess,
+    bookingModalData=null
 }) {
     const { selectedResort, refreshBookings } = useApp()
     const [addBookingProgress, setAddBookingProgress] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
 
-    const [form, setForm] = useState({
+    const defaultForm = {
         name: '',
         contact: '',
         start_date: '',
@@ -22,7 +25,21 @@ export default function AddBookingModal({
         end_time: '17:00',
         guests: '',
         notes: '',
-    })
+    }
+
+    const [form, setForm] = useState(defaultForm)
+
+    useEffect(() => {
+        console.log(bookingModalData)
+        if(bookingModalData) {
+        setForm({
+            ...form,
+            start_date: format(new Date(bookingModalData), 'yyyy-MM-dd')
+        })
+    }
+  }, [bookingModalData])
+
+
 
     const handleChange = (e) => {
         setForm({
@@ -122,6 +139,11 @@ export default function AddBookingModal({
         onClose()
     }
 
+    const handleClose = () => {
+        resetForm()
+        onClose()
+    }
+
     if (!open) return null
 
     return (
@@ -137,7 +159,9 @@ export default function AddBookingModal({
                         )}
                     </div>
 
-                    <button onClick={onClose}>✕</button>
+                    <button className='cursor-pointer' onClick={handleClose}>
+                        <X height={16}/>
+                    </button>
                 </div>
 
                 {errorMessage && (
@@ -147,6 +171,52 @@ export default function AddBookingModal({
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-3">
+                    
+                    <div className="mt-8 flex grid-cols-3 gap-2">
+        <p className='w-88'>Check In</p>
+        <input
+          min={new Date().toISOString().split('T')[0]}
+          type="date"
+          name="start_date"
+          value={form.start_date}
+          className="flex-1 border p-2 rounded"
+          onChange={handleChange}
+          required
+        />
+
+        <input
+          type="time"
+          name="start_time"
+          value={form.start_time}
+          className="flex-1 border p-2 rounded"
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+
+      <div className="flex grid-cols-3 gap-2">
+         <p className='w-88'>Check Out</p>
+        <input
+          min={new Date().toISOString().split('T')[0]}
+          type="date"
+          name="end_date"
+          value={form.end_date}
+          className="flex-1 border p-2 rounded"
+          onChange={handleChange}
+          required
+        />
+
+        <input
+          type="time"
+          name="end_time"
+          value={form.end_time}
+          className="flex-1 border p-2 rounded"
+          onChange={handleChange}
+          required
+        />
+      </div>
+                    
                     <input
                         type="text"
                         name="name"
@@ -166,47 +236,6 @@ export default function AddBookingModal({
                         onChange={handleChange}
                     />
 
-                    <div className="grid grid-cols-2 gap-2">
-                        <input
-                            min={new Date().toISOString().split('T')[0]}
-                            type="date"
-                            name="start_date"
-                            value={form.start_date}
-                            className="border p-2 rounded"
-                            onChange={handleChange}
-                            required
-                        />
-
-                        <input
-                            type="time"
-                            name="start_time"
-                            value={form.start_time}
-                            className="border p-2 rounded"
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                        <input
-                            min={new Date().toISOString().split('T')[0]}
-                            type="date"
-                            name="end_date"
-                            value={form.end_date}
-                            className="border p-2 rounded"
-                            onChange={handleChange}
-                            required
-                        />
-
-                        <input
-                            type="time"
-                            name="end_time"
-                            value={form.end_time}
-                            className="border p-2 rounded"
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
 
                     <input
                         type="number"
@@ -237,7 +266,7 @@ export default function AddBookingModal({
                             || form.notes === ''
                             && (addBookingProgress || !selectedResort)
                         }
-                        className="w-full bg-[#29b55a] text-white py-2 rounded disabled:bg-gray-400"
+                        className="w-full bg-[#29b55a] text-white py-2 rounded disabled:bg-gray-400 cursor-pointer disabled:cursor-default"
                     >
                         {addBookingProgress ? 'Saving...' : 'Save Booking'}
                     </button>

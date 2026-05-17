@@ -8,7 +8,7 @@ export default function BookingForm({ resort }) {
   const { showToast } = useApp()
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [success, setSuccess] = useState(true)
+  const [success, setSuccess] = useState(false)
 
   const defaultForm = {
     name: '',
@@ -124,7 +124,7 @@ export default function BookingForm({ resort }) {
 
         <button
           onClick={handleNewBooking}
-          className="mt-4 w-full bg-[#29b55a] text-white p-2 rounded"
+          className="cursor-pointer  mt-4 w-full bg-[#29b55a] text-white p-2 rounded"
         >
           Create New Booking
         </button>
@@ -139,6 +139,51 @@ export default function BookingForm({ resort }) {
           {errorMessage}
         </div>
       )}
+
+      <div className="mt-8 flex grid-cols-3 gap-2">
+        <p className='w-88'>Check Out</p>
+        <input
+          min={new Date().toISOString().split('T')[0]}
+          type="date"
+          name="start_date"
+          value={form.start_date}
+          className="flex-1 border p-2 rounded"
+          onChange={handleChange}
+          required
+        />
+
+        <input
+          type="time"
+          name="start_time"
+          value={form.start_time}
+          className="flex-1 border p-2 rounded"
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+
+      <div className="flex grid-cols-3 gap-2">
+         <p className='w-88'>Check Out</p>
+        <input
+          min={new Date().toISOString().split('T')[0]}
+          type="date"
+          name="end_date"
+          value={form.end_date}
+          className="flex-1 border p-2 rounded"
+          onChange={handleChange}
+          required
+        />
+
+        <input
+          type="time"
+          name="end_time"
+          value={form.end_time}
+          className="flex-1 border p-2 rounded"
+          onChange={handleChange}
+          required
+        />
+      </div>
 
       <input
         type="text"
@@ -159,47 +204,6 @@ export default function BookingForm({ resort }) {
         onChange={handleChange}
       />
 
-      <div className="grid grid-cols-2 gap-2">
-        <input
-          min={new Date().toISOString().split('T')[0]}
-          type="date"
-          name="start_date"
-          value={form.start_date}
-          className="border p-2 rounded"
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          type="time"
-          name="start_time"
-          value={form.start_time}
-          className="border p-2 rounded"
-          onChange={handleChange}
-          required
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        <input
-          min={new Date().toISOString().split('T')[0]}
-          type="date"
-          name="end_date"
-          value={form.end_date}
-          className="border p-2 rounded"
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          type="time"
-          name="end_time"
-          value={form.end_time}
-          className="border p-2 rounded"
-          onChange={handleChange}
-          required
-        />
-      </div>
 
       <input
         type="number"
@@ -230,7 +234,7 @@ export default function BookingForm({ resort }) {
           || !form.guests
           || form.notes === ''
         }
-        className="w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-400"
+        className="cursor-default enabled:cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-400"
       >
         {loading ? 'Submitting...' : 'Submit Booking'}
       </button>

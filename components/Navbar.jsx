@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { useApp } from '@/context/AppContext'
 import Loader from '@/components/Loader'
+import { ChevronDown, Pencil } from 'lucide-react'
 
 export default function Navbar() {
   const router = useRouter()
@@ -70,8 +71,13 @@ export default function Navbar() {
         {/* LEFT: Resort Title + Edit */}
         <div className="relative" ref={menuRef}>
           <div
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => router.push('/dashboard')}
+          onClick={(e) => {
+                  e.stopPropagation()
+                  setOpenMenu((prev) => !prev)
+                }}
+          className='pl-4 pr-4 rounded-full hover:bg-gray-100 cursor-pointer'>
+          <div
+            className="flex items-center gap-2 content-center"
           >
             <h1 className="font-bold text-xl capitalize">
               {selectedResort?.name || 'Booking'}
@@ -79,21 +85,9 @@ export default function Navbar() {
 
             {/* ✏️ Edit Icon */}
             {user && resorts.length > 0 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setOpenMenu((prev) => !prev)
-                }}
-                className="text-gray-500 hover:text-black text-sm"
-              >
-                ✏️
-              </button>
+              <ChevronDown width={16}/>
             )}
           </div>
-
-          {refreshing && (
-            <p className="text-xs text-gray-400">Syncing...</p>
-          )}
 
           {/* Booking link */}
           {selectedResort?.slug && !refreshing && (
@@ -101,10 +95,11 @@ export default function Navbar() {
               /public-booking/{selectedResort.slug}
             </p>
           )}
+          </div>
 
           {/* 🔥 Popup Menu */}
           {openMenu && (
-            <div className="absolute mt-2 w-56 bg-white border rounded-xl shadow-lg z-50 overflow-hidden">
+            <div className="absolute mt-2 w-56 bg-white border border-1 border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
               {resorts.map((resort) => (
                 <button
                   key={resort.id}
@@ -112,7 +107,7 @@ export default function Navbar() {
                     setSelectedResort(resort)
                     setOpenMenu(false)
                   }}
-                  className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${selectedResort?.id === resort.id
+                  className={`cursor-pointer block w-full text-left px-4 py-2 hover:bg-gray-200 ${selectedResort?.id === resort.id
                     ? 'bg-gray-100 font-semibold'
                     : ''
                     }`}
@@ -121,14 +116,14 @@ export default function Navbar() {
                 </button>
               ))}
 
-              <div className="border-t mt-1" />
+              <div className="border-t border-t-gray-300 mt-1" />
 
               <button
                 onClick={() => {
                   setOpenMenu(false)
                   router.push('/onboarding')
                 }}
-                className="block w-full text-left px-4 py-2 text-blue-500 hover:bg-gray-100"
+                className="block w-full text-left px-4 py-2 text-blue-500 hover:bg-gray-100 cursor-pointer"
               >
                 + Add Resort
               </button>
@@ -144,7 +139,7 @@ export default function Navbar() {
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setOpenUserMenu((prev) => !prev)}
-                    className="flex items-center gap-2 rounded-full px-3 py-2 hover:bg-gray-50"
+                    className="flex items-center gap-2 rounded-full px-3 py-2 hover:bg-gray-100 cursor-pointer"
                   >
                     <span className="hidden md:block text-sm font-medium">
                       {user.email}
@@ -155,8 +150,8 @@ export default function Navbar() {
                   </button>
 
                   {openUserMenu && (
-                    <div className="absolute right-0 mt-2 w-72 bg-white border rounded-xl shadow-lg z-50 overflow-hidden">
-                      <div className="px-4 py-3 border-b">
+                    <div className="absolute right-0 mt-2 w-72 bg-white border-1 border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-b-gray-200">
                         <p className="font-semibold">
                           {user.user_metadata?.name || 'Account'}
                         </p>

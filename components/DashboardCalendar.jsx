@@ -12,7 +12,7 @@ function formatDateTime(datetime) {
   return format(new Date(datetime), 'MM-dd-yy HH:mm')
 }
 
-export default function DashboardCalendar() {
+export default function DashboardCalendar({ onAddBooking }) {
   const {
     confirmedBookings,
     bookingsLoading,
@@ -42,7 +42,7 @@ export default function DashboardCalendar() {
           <button
             onClick={() => setView('calendar')}
             title="Calendar view"
-            className={`flex items-center justify-center px-3 py-2 ${view === 'calendar'
+            className={`cursor-pointer flex items-center justify-center px-3 py-2 ${view === 'calendar'
               ? 'bg-[#29b55a] text-white'
               : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
@@ -53,7 +53,7 @@ export default function DashboardCalendar() {
           <button
             onClick={() => setView('list')}
             title="List view"
-            className={`flex items-center justify-center px-3 py-2 ${view === 'list'
+            className={`cursor-pointer  flex items-center justify-center px-3 py-2 ${view === 'list'
               ? 'bg-[#29b55a] text-white'
               : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
@@ -68,6 +68,7 @@ export default function DashboardCalendar() {
         <CalendarView
           bookings={confirmedBookings}
           onBookingCancelled={refreshBookings}
+          onAddBooking={onAddBooking}
         />
       ) : (
         <div className="space-y-3">

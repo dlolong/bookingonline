@@ -76,7 +76,7 @@ function getSlotForDay(day, booking) {
   return 'full'
 }
 
-export default function CalendarView({ bookings = [] }) {
+export default function CalendarView({ bookings = [], onAddBooking }) {
   const { refreshBookings } = useApp()
   const [selectedDate, setSelectedDate] = useState(null)
   const [selectedBookings, setSelectedBookings] = useState([])
@@ -105,6 +105,8 @@ export default function CalendarView({ bookings = [] }) {
     if (bookingsForDay.length > 0) {
       setSelectedBookings(bookingsForDay)
       setOpenModal(true)
+    } else {
+      onAddBooking(day) 
     }
   }
 
@@ -172,7 +174,7 @@ export default function CalendarView({ bookings = [] }) {
                 className={
                   `relative w-10 h-10 md:w-14 md:h-14 rounded-full overflow-hidden flex items-center justify-center transition
         ${isToday ? 'ring-2 ring-blue-500 font-bold' : 'border-gray-200'}
-        hover:scale-105`}
+        hover:scale-105 disabled:opacity-50 hover:enabled:bg-gray-200 enabled:cursor-pointer cursor-default`}
               >
                 {/* Full day */}
                 {fullBooking && (
@@ -284,7 +286,7 @@ export default function CalendarView({ bookings = [] }) {
                   setCancelReason('')
                 }}
                 disabled={cancelling}
-                className="px-4 py-2 rounded border"
+                className="cursor-pointer  px-4 py-2 rounded border"
               >
                 Close
               </button>
@@ -292,7 +294,7 @@ export default function CalendarView({ bookings = [] }) {
               <button
                 onClick={handleCancelBooking}
                 disabled={cancelReason === "" || cancelling}
-                className="px-4 py-2 rounded bg-red-600 text-white disabled:bg-gray-400"
+                className="cursor-pointer  px-4 py-2 rounded bg-red-600 text-white disabled:bg-gray-400"
               >
                 {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
               </button>
@@ -314,7 +316,7 @@ export default function CalendarView({ bookings = [] }) {
 
               <button
                 onClick={closeModal}
-                className="text-gray-500 hover:text-black text-xl"
+                className="cursor-pointer text-gray-500 hover:text-black text-xl"
               >
                 ✕
               </button>
@@ -363,7 +365,7 @@ export default function CalendarView({ bookings = [] }) {
                         setCancelBooking(booking)
                         setCancelReason('')
                       }}
-                      className="mt-4 p-2 bg-red-400 text-white py-2 rounded"
+                      className="cursor-pointer  mt-4 p-2 bg-red-400 text-white py-2 rounded"
                     >
                       Cancel Booking
                     </button>
