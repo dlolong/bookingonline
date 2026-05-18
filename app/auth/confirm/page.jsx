@@ -59,7 +59,7 @@ export default function ConfirmEmailPage() {
   }, [router, showToast, refreshAppData])
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
+    <div className="flex items-center justify-center p-6">
       <div className="bg-white p-8 rounded-2xl shadow text-center max-w-sm">
         {status === 'verifying' && (
           <>

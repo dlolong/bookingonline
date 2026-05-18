@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-96px)] flex items-center justify-center p-6">
+    <div className="flex items-center justify-center p-6">
       <form
         onSubmit={handleUpdatePassword}
         className="bg-white w-full max-w-md rounded-2xl shadow p-6 space-y-4"

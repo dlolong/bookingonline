@@ -81,10 +81,10 @@ export default function Navbar() {
               {selectedResort?.name}
             </h1> : (
                <Image
-                  src="/logo.png"
+                  src="/logo2.png"
                   alt="Resort Logo"
-                  width={150}
-                  height={100}
+                  width={100}
+                  height={80}
                   className="rounded-lg"
                   priority
                 />
