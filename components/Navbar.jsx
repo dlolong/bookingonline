@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { useApp } from '@/context/AppContext'
 import Loader from '@/components/Loader'
 import { ChevronDown, Pencil } from 'lucide-react'
+import Image from 'next/image'
 
 export default function Navbar() {
   const router = useRouter()
@@ -76,9 +77,18 @@ export default function Navbar() {
           <div
             className="flex items-center gap-2 content-center"
           >
-            <h1 className="font-bold text-xl capitalize">
-              {selectedResort?.name || 'Booking'}
-            </h1>
+           {selectedResort ? <h1 className="font-bold text-xl capitalize">
+              {selectedResort?.name}
+            </h1> : (
+               <Image
+                  src="/logo.png"
+                  alt="Resort Logo"
+                  width={150}
+                  height={100}
+                  className="rounded-lg"
+                  priority
+                />
+            )}
 
             {/* ✏️ Edit Icon */}
             {user && resorts.length > 0 && (
@@ -87,7 +97,7 @@ export default function Navbar() {
                   e.stopPropagation()
                   setOpenMenu((prev) => !prev)
                 }}
-                className="text-[-webkit-center] w-6 text-gray-500 hover:bg-gray-300 hover:text-black text-sm rounded-full cursor-pointer"
+                className="[text-align:-webkit-center] w-6 text-gray-500 hover:bg-gray-300 hover:text-black text-sm rounded-full cursor-pointer"
               >
                 <ChevronDown width={16}/>
               </button>

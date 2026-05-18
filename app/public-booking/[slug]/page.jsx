@@ -1,6 +1,12 @@
 import { supabase } from '@/lib/supabaseClient'
 import BookingForm from './BookingForm'
 
+export async function generateMetadata({ params }) {
+  return {
+    title: `Book ${params.slug} | Resort`,
+  }
+}
+
 export default async function PublicBookingPage(props) {
   const params = await props.params
   const slug = params?.slug
@@ -34,6 +40,8 @@ export default async function PublicBookingPage(props) {
       <h1 className="text-2xl font-bold mb-2 capitalize">
         {resort.name}
       </h1>
+
+
 
       {/* <p className="text-gray-500 mb-6">
         Booking slug: {slug}

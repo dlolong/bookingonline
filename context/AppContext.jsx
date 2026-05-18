@@ -24,6 +24,7 @@ export function AppProvider({ children }) {
   const [toast, setToast] = useState(null)
 
   const publicRoutes = [
+    '/',
     '/login',
     '/signup',
     '/public-booking',

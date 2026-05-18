@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import DashboardCalendar from '@/components/DashboardCalendar'
 import DashboardBookings from '@/components/DashboardBookings'
 import AddBookingModal from '@/components/AddBookingModal'

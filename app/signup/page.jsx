@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { signUp } from '@/lib/auth'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -13,7 +14,13 @@ export default function SignupPage() {
   const handleSignup = async (e) => {
     e.preventDefault()
 
-    const { error } = await signUp(email, password)
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+      },
+    })
 
     if (error) {
       alert(error.message)

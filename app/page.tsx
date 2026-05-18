@@ -1,21 +1,84 @@
 'use client'
+
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
-export default function Home() {
+export default function WelcomePage() {
   const router = useRouter()
 
   return (
-    <div className="text-center p-10">
-      <h1 className="text-3xl font-bold">
-        Stop Double Booking Your Resort
-      </h1>
+    <main className="min-h-screen bg-gradient-to-b from-green-50 to-white">
+      <section className="max-w-6xl mx-auto px-6 py-20 text-center">
+        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+          Manage Resort Bookings Without the Stress
+        </h1>
 
-      <button
-        onClick={() => router.push('/signup')}
-        className="mt-6 bg-[#29b55a] text-white px-6 py-3 rounded"
-      >
-        Try Free
-      </button>
-    </div>
+        <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+          A simple booking calendar for private resorts. Avoid double bookings,
+          track reservations, and manage guest requests in one place.
+        </p>
+
+        <button
+          onClick={() => router.push('/signup')}
+          className="bg-green-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-green-700"
+        >
+          Try Free
+        </button>
+
+        <p className="text-sm text-gray-500 mt-3">
+          No credit card required
+        </p>
+      </section>
+
+      <section className="max-w-6xl mx-auto px-6 py-12 grid md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="text-3xl mb-3">📅</div>
+          <h3 className="text-xl font-bold mb-2">
+            Booking Calendar
+          </h3>
+          <p className="text-gray-600">
+            See confirmed and pending bookings clearly in one calendar.
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="text-3xl mb-3">✅</div>
+          <h3 className="text-xl font-bold mb-2">
+            Avoid Double Bookings
+          </h3>
+          <p className="text-gray-600">
+            Automatically check date and time conflicts before saving bookings.
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="text-3xl mb-3">🌐</div>
+          <h3 className="text-xl font-bold mb-2">
+            Public Booking Link
+          </h3>
+          <p className="text-gray-600">
+            Share a booking page with guests so they can send requests easily.
+          </p>
+        </div>
+      </section>
+
+      <section className="max-w-4xl mx-auto px-6 py-16 text-center">
+        <h2 className="text-3xl font-bold mb-4">
+          Built for Resort Owners
+        </h2>
+
+        <p className="text-gray-600 mb-8">
+          Replace messy Messenger threads and spreadsheets with a clean,
+          mobile-friendly booking system.
+        </p>
+
+        <button
+          onClick={() => router.push('/signup')}
+          className="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700"
+        >
+          Start Free Today
+        </button>
+      </section>
+    </main>
   )
 }
