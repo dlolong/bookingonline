@@ -106,7 +106,7 @@ export default function DashboardBookings() {
 
             <div className="flex items-center justify-between mb-4">
                 <div className='sr-only md:not-sr-only'>
-                    <h2 className="text-xl font-bold">Pending</h2>
+                    <p className="text-l font-bold">Pending</p>
                 </div>
 
                 {(refreshing || loadingBookings) && (

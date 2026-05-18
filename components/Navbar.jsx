@@ -72,7 +72,7 @@ export default function Navbar() {
         {/* LEFT: Resort Title + Edit */}
         <div className="relative" ref={menuRef}>
           <div
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.replace(user ? '/dashboard' : '/')}
           className='pl-4 pr-4 rounded-full cursor-pointer'>
           <div
             className="flex items-center gap-2 content-center"
@@ -182,14 +182,14 @@ export default function Navbar() {
                           setOpenUserMenu(false)
                           router.push('/settings')
                         }}
-                        className="block w-full text-left px-4 py-3 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
                       >
                         Settings
                       </button>
 
                       <button
                         onClick={logout}
-                        className="block w-full text-left px-4 py-3 text-red-600 hover:bg-red-50"
+                        className="block w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 cursor-pointer"
                       >
                         Logout
                       </button>
@@ -200,17 +200,17 @@ export default function Navbar() {
                 <>
                   <button
                     onClick={() => router.push('/login')}
-                    className="px-4 py-2 rounded border"
+                    className="cursor-pointer px-4 py-2 rounded border"
                   >
                     Login
                   </button>
 
-                  <button
+                 {!user && <button
                     onClick={() => router.push('/signup')}
-                    className="bg-[#29b55a] text-white px-4 py-2 rounded"
+                    className="cursor-pointer bg-[#29b55a] text-white px-4 py-2 rounded"
                   >
                     Try Free
-                  </button>
+                  </button>}
                 </>
               )}
             </>

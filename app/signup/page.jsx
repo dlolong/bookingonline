@@ -4,17 +4,22 @@ import { useState } from 'react'
 import { signUp } from '@/lib/auth'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+import { useApp } from '@/context/AppContext'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function SignupPage() {
+  const { showToast } = useApp()
   const router = useRouter()
-
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSignup = async (e) => {
     e.preventDefault()
+    setLoading(true)
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -22,13 +27,30 @@ export default function SignupPage() {
       },
     })
 
+    setLoading(false)
+
     if (error) {
-      alert(error.message)
-    } else {
-      alert('Account created! You can now login.')
-      // router.push('/login')
-      router.push('/onboarding')
+      showToast({
+        type: "error",
+        message: error.message
+      })
+      return
     }
+
+    if (data?.user && data.user.identities?.length === 0) {
+      showToast({
+        type: "error",
+        message: 'This email is already registered. Please login instead.'
+      })
+      return
+    }
+
+
+    showToast({
+      type: "success",
+      message: 'Signup successful. Please check your email to confirm.'
+    })
+    router.push('/onboarding')
   }
 
   return (
@@ -39,19 +61,34 @@ export default function SignupPage() {
         <input
           type="email"
           placeholder="Email"
-          className="w-full border p-2"
+          className="w-full border-1 border-gray-400 p-2 rounded-xl"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full border p-2"
-          onChange={(e) => setPassword(e.target.value)}
-        />
+       <div className="relative">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
+            className="w-full border-1 border-gray-400 p-2 pr-10 rounded-xl"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-        <button className="w-full bg-[#29b55a] text-white p-2 rounded">
-          Sign Up
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+
+       <button
+          disabled={loading || !email || !password}
+          className={'cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-400 rounded-xl'}
+        >
+          {loading ? 'Processing...' : 'Sign Up'}
         </button>
       </form>
     </div>

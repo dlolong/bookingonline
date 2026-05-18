@@ -12,6 +12,7 @@ export function AppProvider({ children }) {
 
   const [user, setUser] = useState(null)
   const [resorts, setResorts] = useState([])
+  const [getResortsProgress, setGetResortsProgress] = useState(false)
   const [selectedResort, setSelectedResortState] = useState(null)
 
   const [initialLoading, setInitialLoading] = useState(true)
@@ -27,11 +28,12 @@ export function AppProvider({ children }) {
     '/',
     '/login',
     '/signup',
-    '/public-booking',
+    '/forgot-password',
+    '/reset-password',
   ]
-const isPublicRoute = publicRoutes.some((route) =>
-  pathname.startsWith(route)
-)
+  const isPublicRoute = publicRoutes.some((route) =>
+    pathname.startsWith(route)
+  )
 
   const showToast = ({ type = 'success', message }) => {
     setToast({ type, message })
@@ -107,8 +109,9 @@ const isPublicRoute = publicRoutes.some((route) =>
     if (!silent) setInitialLoading(true)
     if (silent) setRefreshing(true)
 
+    setUser(currentUser)
+
     if (!currentUser) {
-      setUser(null)
       setResorts([])
       setSelectedResortState(null)
       localStorage.removeItem('selected_resort_id')
@@ -117,15 +120,24 @@ const isPublicRoute = publicRoutes.some((route) =>
       return
     }
 
-    setUser(currentUser)
+    if (isPublicRoute) {
+      router.push('/dashboard')
+    }
 
+    setGetResortsProgress(true)
     const { data: resortsData, error } = await supabase
       .from('resorts')
       .select('*')
       .eq('user_id', currentUser.id)
       .order('created_at')
 
+    setGetResortsProgress(false)
     if (!error) {
+
+      if (resortsData.length < 1) {
+        router.replace('/onboarding')
+      }
+
       const resortsList = resortsData || []
       const storedId = localStorage.getItem('selected_resort_id')
 
@@ -162,7 +174,7 @@ const isPublicRoute = publicRoutes.some((route) =>
         setSelectedResortState(null)
 
         if (!isPublicRoute) {
-          router.replace('/login')
+          router.replace('/')
         }
         return
       }
@@ -178,6 +190,7 @@ const isPublicRoute = publicRoutes.some((route) =>
     <AppContext.Provider
       value={{
         user,
+        getResortsProgress,
         resorts,
         selectedResort,
         setSelectedResort,

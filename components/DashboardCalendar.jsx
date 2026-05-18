@@ -19,6 +19,7 @@ export default function DashboardCalendar({ onAddBooking }) {
     initialLoading,
     refreshing,
     refreshBookings,
+    showToast,
   } = useApp()
 
   const [view, setView] = useState('calendar')
@@ -34,7 +35,10 @@ export default function DashboardCalendar({ onAddBooking }) {
     if (!cancelBooking) return
 
     if (!cancelReason.trim()) {
-      alert('Please enter cancellation reason.')
+      showToast({
+        type: "info",
+        message: 'Please enter cancellation reason.'
+      })
       return
     }
 
@@ -52,8 +56,10 @@ export default function DashboardCalendar({ onAddBooking }) {
     setCancelling(false)
 
     if (error) {
-      console.error(error)
-      alert('Failed to cancel booking.')
+      showToast({
+        type: "error",
+        message: 'Failed to cancel booking.'
+      })
       return
     }
 
@@ -68,12 +74,7 @@ export default function DashboardCalendar({ onAddBooking }) {
 
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl font-bold sr-only md:not-sr-only">Reserved</h2>
-          {(refreshing || bookingsLoading) && (
-            <span className="text-xs text-gray-400">
-              Syncing...
-            </span>
-          )}
+          <h4 className="font-bold sr-only md:not-sr-only">Reserved</h4>
         </div>
         <div className="flex rounded-lg border border-[#b3b3b3] overflow-hidden">
           <button

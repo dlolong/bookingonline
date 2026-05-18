@@ -3,20 +3,30 @@
 import { useState } from 'react'
 import { signIn } from '@/lib/auth'
 import { useRouter } from 'next/navigation'
+import { useApp } from '@/context/AppContext'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
+  const { showToast } = useApp()
   const router = useRouter()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleLogin = async (e) => {
     e.preventDefault()
+    setLoading(true)
 
     const { error } = await signIn(email, password)
 
+    setLoading(false)
     if (error) {
-      alert(error.message)
+      showToast({
+        type: "error",
+        message: error.message
+      })
     } else {
       router.push('/dashboard')
     }
@@ -30,19 +40,41 @@ export default function LoginPage() {
         <input
           type="email"
           placeholder="Email"
-          className="w-full border p-2"
+          className="w-full border-1 border-gray-400 p-2 rounded-xl"
+           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full border p-2"
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div className="relative">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
+            className="w-full border-1 border-gray-400 p-2 pr-10 rounded-xl"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-        <button className="w-full bg-blue-600 text-white p-2 rounded">
-          Login
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+
+        <button
+          disabled={loading || !password || !email}
+          className={'cursor-pointer w-full bg-blue-600 text-white p-2 rounded-xl disabled:bg-gray-400'}
+        >
+          {loading ? 'Processing...' : 'Login'}
+        </button>
+        <button
+          type="button"
+          onClick={() => router.push('/forgot-password')}
+          className="w-full text-right text-sm text-green-600 underline"
+        >
+          Forgot password?
         </button>
       </form>
     </div>

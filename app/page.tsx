@@ -20,7 +20,7 @@ export default function WelcomePage() {
 
         <button
           onClick={() => router.push('/signup')}
-          className="bg-green-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-green-700"
+          className="cursor-pointer bg-[#29b55a] text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-green-700"
         >
           Try Free
         </button>
@@ -74,7 +74,7 @@ export default function WelcomePage() {
 
         <button
           onClick={() => router.push('/signup')}
-          className="bg-green-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700"
+          className="cursor-pointer bg-[#29b55a] text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700"
         >
           Start Free Today
         </button>

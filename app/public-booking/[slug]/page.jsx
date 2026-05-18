@@ -2,8 +2,10 @@ import { supabase } from '@/lib/supabaseClient'
 import BookingForm from './BookingForm'
 
 export async function generateMetadata({ params }) {
+  // const params = await params
+  // const slug = params?.slug
   return {
-    title: `Book ${params.slug} | Resort`,
+    title: `Resort Booking`,
   }
 }
 

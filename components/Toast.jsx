@@ -8,7 +8,7 @@ export default function Toast() {
   if (!toast) return null
 
   const styles = {
-    success: 'bg-green-600',
+    success: 'bg-[#29b55a]',
     error: 'bg-red-600',
     warning: 'bg-yellow-500',
     info: 'bg-blue-600',

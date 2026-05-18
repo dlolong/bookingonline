@@ -65,18 +65,18 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+    <div className="h-[calc(100vh-96px)] bg-gray-100 flex items-center justify-center p-6">
       <div className="bg-white w-full max-w-md rounded-2xl shadow p-6">
         
          <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h2 className="text-xl font-bold">Add Resort</h2>
-                    </div>
+            <div>
+                <h2 className="text-xl font-bold">Add Resort</h2>
+            </div>
 
-                    <button className='cursor-pointer' onClick={handleClose}>
-                        <X height={16}/>
-                    </button>
-                </div>
+            <button className='cursor-pointer' onClick={handleClose}>
+                <X height={16}/>
+            </button>
+        </div>
 
         <p className="text-gray-500 mb-6">
           Create your booking link and dashboard.
@@ -114,8 +114,8 @@ export default function OnboardingPage() {
           )}
 
           <button
-            disabled={loading}
-            className="w-full bg-[#29b55a] text-white p-3 rounded"
+            disabled={loading || !name}
+            className="w-full bg-[#29b55a] disabled:bg-gray-400 text-white p-3 rounded cursor-pointer"
           >
             {loading ? 'Creating...' : 'Create Resort'}
           </button>
