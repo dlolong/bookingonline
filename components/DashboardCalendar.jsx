@@ -125,10 +125,10 @@ export default function DashboardCalendar({ onAddBooking }) {
               >
                 <div className="items-center justify-between">
                   <h6 className='flex items-center'>
-                    <MapPin width={16} className='text-gray-400 mr-2' /> {`${format(new Date(booking.start_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
+                    <MapPin width={16} className='text-gray-700 mr-2' /> {`${format(new Date(booking.start_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
                   </h6>
                   <h6 className='flex items-center'>
-                    <Flag width={16} className='text-gray-400 mr-2' /> {`${format(new Date(booking.end_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
+                    <Flag width={16} className='text-gray-700 mr-2' /> {`${format(new Date(booking.end_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
                   </h6>
                 </div>
 
@@ -136,19 +136,19 @@ export default function DashboardCalendar({ onAddBooking }) {
 
                   <div className="mt-3 space-y-0 text-sm text-black-600">
                     <p className='flex items-center'>
-                      <User width={16} className='text-gray-400 mr-2' /> {booking.name}
+                      <User width={16} className='text-gray-700 mr-2' /> {booking.name}
                     </p>
                     <p className='flex items-center'>
-                      <Users width={16} className='text-gray-400 mr-2' /> {booking.guests} pax
+                      <Users width={16} className='text-gray-700 mr-2' /> {booking.guests} pax
                     </p>
 
                     <p className='flex items-center'>
-                      <Phone width={16} className='text-gray-400 mr-2' /> {booking.contact}
+                      <Phone width={16} className='text-gray-700 mr-2' /> {booking.contact}
                     </p>
 
                     {booking.notes && (
                       <p className='flex items-center'>
-                        <NotepadText width={16} className='text-gray-400 mr-2' /> {booking.notes}
+                        <NotepadText width={16} className='text-gray-700 mr-2' /> {booking.notes}
                       </p>
                     )}
                   </div>
@@ -202,7 +202,7 @@ export default function DashboardCalendar({ onAddBooking }) {
               <button
                 onClick={handleCancelBooking}
                 disabled={cancelReason === "" || cancelling}
-                className="cursor-pointer  px-4 py-2 rounded bg-red-600 text-white disabled:bg-gray-400"
+                className="cursor-pointer  px-4 py-2 rounded bg-red-600 text-white disabled:bg-gray-700"
               >
                 {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
               </button>

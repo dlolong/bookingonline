@@ -183,45 +183,6 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
           },
         }}
       />
-      {/* <DayPicker
-        weekStartsOn={1}
-        mode="single"
-        selected={selectedDate}
-        onDayClick={handleDayClick}
-        disabled={{ before: today }}
-        // modifiers={{
-        //   confirmed: confirmedDays,
-        //   pending: pendingDays,
-        // }}
-        // modifiersStyles={{
-        //   confirmed: {
-        //     backgroundColor: '#22c55e',
-        //     color: 'white',
-        //     borderRadius: '999px',
-        //   },
-        //   pending: {
-        //     backgroundColor: '#facc15',
-        //     color: 'black',
-        //     borderRadius: '999px',
-        //   },
-        // }}
-        // className="w-full"
-        // classNames={{
-        //   table: 'w-full',
-        //   head_row: 'grid grid-cols-7',
-        //   row: 'grid grid-cols-7',
-        //   cell: 'flex justify-center',
-        //   day_selected: `
-        //     bg-[#29b55a] text-white
-        //     scale-105
-        //     ring-2 ring-green-300
-        //     font-semibold
-        //   `,
-        //   day_today: 'border border-gray-400',
-        //   day_outside: 'text-gray-300',
-        //   day_disabled: 'text-gray-300 opacity-50',
-        // }}
-      /> */}
 
       {openModal && (
         <div className="fixed inset-0 bg-black/40 flex justify-center z-50 p-4">
@@ -250,10 +211,10 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
                 >
                   <div className="items-center justify-between">
                     <h6 className='flex items-center'>
-                      <MapPin width={16} className='text-gray-400 mr-2' /> {`${format(new Date(booking.start_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
+                      <MapPin width={16} className='text-gray-700 mr-2' /> {`${format(new Date(booking.start_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
                     </h6>
                     <h6 className='flex items-center'>
-                      <Flag width={16} className='text-gray-400 mr-2' /> {`${format(new Date(booking.end_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
+                      <Flag width={16} className='text-gray-700 mr-2' /> {`${format(new Date(booking.end_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
                     </h6>
                   </div>
 
@@ -261,19 +222,19 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
 
                     <div className="mt-3 space-y-0 text-sm text-black-600">
                       <p className='flex items-center'>
-                        <User width={16} className='text-gray-400 mr-2' /> {booking.name}
+                        <User width={16} className='text-gray-700 mr-2' /> {booking.name}
                       </p>
                       <p className='flex items-center'>
-                        <Users width={16} className='text-gray-400 mr-2' /> {booking.guests} pax
+                        <Users width={16} className='text-gray-700 mr-2' /> {booking.guests} pax
                       </p>
 
                       <p className='flex items-center'>
-                        <Phone width={16} className='text-gray-400 mr-2' /> {booking.contact}
+                        <Phone width={16} className='text-gray-700 mr-2' /> {booking.contact}
                       </p>
 
                       {booking.notes && (
                         <p className='flex items-center'>
-                          <NotepadText width={16} className='text-gray-400 mr-2' /> {booking.notes}
+                          <NotepadText width={16} className='text-gray-700 mr-2' /> {booking.notes}
                         </p>
                       )}
                     </div>

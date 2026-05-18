@@ -41,7 +41,7 @@ export default function LoginPage() {
         <input
           type="email"
           placeholder="Email"
-          className="w-full border-1 border-gray-400 p-2 rounded-xl"
+          className="w-full border-1 border-gray-700 p-2 rounded-xl"
            value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -50,7 +50,7 @@ export default function LoginPage() {
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="Password"
-            className="w-full border-1 border-gray-400 p-2 pr-10 rounded-xl"
+            className="w-full border-1 border-gray-700 p-2 pr-10 rounded-xl"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -66,7 +66,7 @@ export default function LoginPage() {
 
         <button
           disabled={loading || !password || !email}
-          className={'cursor-pointer w-full bg-blue-600 text-white p-2 rounded-xl disabled:bg-gray-400'}
+          className={'cursor-pointer w-full bg-blue-600 text-white p-2 rounded-xl disabled:bg-gray-700'}
         >
           {loading ? 'Processing...' : 'Login'}
         </button>

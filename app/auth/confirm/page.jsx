@@ -63,7 +63,7 @@ export default function ConfirmEmailPage() {
       <div className="bg-white p-8 rounded-2xl shadow text-center max-w-sm">
         {status === 'verifying' && (
           <>
-            <div className="animate-spin w-8 h-8 border-4 border-gray-300 border-t-green-600 rounded-full mx-auto mb-4" />
+            <div className="animate-spin w-8 h-8 border-4 border-gray-700 border-t-green-600 rounded-full mx-auto mb-4" />
             <h2 className="text-lg font-semibold">
               Verifying your email...
             </h2>

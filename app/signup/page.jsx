@@ -62,7 +62,7 @@ export default function SignupPage() {
         <input
           type="email"
           placeholder="Email"
-          className="w-full border-1 border-gray-400 p-2 rounded-xl"
+          className="w-full border-1 border-gray-700 p-2 rounded-xl"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -71,7 +71,7 @@ export default function SignupPage() {
           <input
             type={showPassword ? 'text' : 'password'}
             placeholder="Password"
-            className="w-full border-1 border-gray-400 p-2 pr-10 rounded-xl"
+            className="w-full border-1 border-gray-700 p-2 pr-10 rounded-xl"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -87,7 +87,7 @@ export default function SignupPage() {
 
        <button
           disabled={loading || !email || !password}
-          className={'cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-400 rounded-xl'}
+          className={'cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-700 rounded-xl'}
         >
           {loading ? 'Processing...' : 'Sign Up'}
         </button>

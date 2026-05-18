@@ -115,7 +115,7 @@ export default function OnboardingPage() {
 
           <button
             disabled={loading || !name}
-            className="w-full bg-[#29b55a] disabled:bg-gray-400 text-white p-3 rounded cursor-pointer"
+            className="w-full bg-[#29b55a] disabled:bg-gray-700 text-white p-3 rounded cursor-pointer"
           >
             {loading ? 'Creating...' : 'Create Resort'}
           </button>

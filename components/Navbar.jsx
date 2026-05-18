@@ -97,7 +97,7 @@ export default function Navbar() {
                   e.stopPropagation()
                   setOpenMenu((prev) => !prev)
                 }}
-                className="[text-align:-webkit-center] w-6 text-gray-500 hover:bg-gray-300 hover:text-black text-sm rounded-full cursor-pointer"
+                className="[text-align:-webkit-center] w-6 text-gray-500 hover:bg-gray-700 hover:text-black text-sm rounded-full cursor-pointer"
               >
                 <ChevronDown width={16}/>
               </button>
@@ -132,7 +132,7 @@ export default function Navbar() {
                 </button>
               ))}
 
-              <div className="border-t border-t-gray-300 mt-1" />
+              <div className="border-t border-t-gray-700 mt-1" />
 
               <button
                 onClick={() => {

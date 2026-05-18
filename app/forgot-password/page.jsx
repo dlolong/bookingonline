@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
 
         <button
           disabled={loading}
-          className="w-full bg-[#29b55a] text-white p-3 rounded disabled:bg-gray-400"
+          className="w-full bg-[#29b55a] text-white p-3 rounded disabled:bg-gray-700"
         >
           {loading ? 'Sending...' : 'Send Reset Link'}
         </button>

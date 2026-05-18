@@ -234,7 +234,7 @@ export default function BookingForm({ resort }) {
           || !form.guests
           || form.notes === ''
         }
-        className="cursor-default enabled:cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-400"
+        className="cursor-default enabled:cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-700"
       >
         {loading ? 'Submitting...' : 'Submit Booking'}
       </button>

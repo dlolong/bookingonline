@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
 
         <button
           disabled={loading}
-          className="w-full bg-[#29b55a] text-white p-3 rounded disabled:bg-gray-400"
+          className="w-full bg-[#29b55a] text-white p-3 rounded disabled:bg-gray-700"
         >
           {loading ? 'Updating...' : 'Update Password'}
         </button>

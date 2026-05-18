@@ -266,7 +266,7 @@ export default function AddBookingModal({
                             || form.notes === ''
                             && (addBookingProgress || !selectedResort)
                         }
-                        className="w-full bg-[#29b55a] text-white py-2 rounded disabled:bg-gray-400 cursor-pointer disabled:cursor-default"
+                        className="w-full bg-[#29b55a] text-white py-2 rounded disabled:bg-gray-700 cursor-pointer disabled:cursor-default"
                     >
                         {addBookingProgress ? 'Saving...' : 'Save Booking'}
                     </button>
