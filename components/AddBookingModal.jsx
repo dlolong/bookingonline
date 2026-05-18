@@ -10,7 +10,7 @@ export default function AddBookingModal({
     open,
     onClose,
     onSuccess,
-    bookingModalData=null
+    bookingModalData = null
 }) {
     const { selectedResort, refreshBookings } = useApp()
     const [addBookingProgress, setAddBookingProgress] = useState(false)
@@ -31,13 +31,13 @@ export default function AddBookingModal({
 
     useEffect(() => {
         console.log(bookingModalData)
-        if(bookingModalData) {
-        setForm({
-            ...form,
-            start_date: format(new Date(bookingModalData), 'yyyy-MM-dd')
-        })
-    }
-  }, [bookingModalData])
+        if (bookingModalData) {
+            setForm({
+                ...form,
+                start_date: format(new Date(bookingModalData), 'yyyy-MM-dd')
+            })
+        }
+    }, [bookingModalData])
 
 
 
@@ -160,7 +160,7 @@ export default function AddBookingModal({
                     </div>
 
                     <button className='cursor-pointer' onClick={handleClose}>
-                        <X height={16}/>
+                        <X height={16} />
                     </button>
                 </div>
 
@@ -171,52 +171,52 @@ export default function AddBookingModal({
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-3">
-                    
+
                     <div className="mt-8 flex grid-cols-3 gap-2">
-        <p className='w-88'>Check In</p>
-        <input
-          min={new Date().toISOString().split('T')[0]}
-          type="date"
-          name="start_date"
-          value={form.start_date}
-          className="flex-1 border p-2 rounded"
-          onChange={handleChange}
-          required
-        />
+                        <p className='w-88'>Check In</p>
+                        <input
+                            min={new Date().toISOString().split('T')[0]}
+                            type="date"
+                            name="start_date"
+                            value={form.start_date}
+                            className="flex-1 border p-2 rounded"
+                            onChange={handleChange}
+                            required
+                        />
 
-        <input
-          type="time"
-          name="start_time"
-          value={form.start_time}
-          className="flex-1 border p-2 rounded"
-          onChange={handleChange}
-          required
-        />
-      </div>
+                        <input
+                            type="time"
+                            name="start_time"
+                            value={form.start_time}
+                            className="flex-1 border p-2 rounded"
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
 
 
-      <div className="flex grid-cols-3 gap-2">
-         <p className='w-88'>Check Out</p>
-        <input
-          min={new Date().toISOString().split('T')[0]}
-          type="date"
-          name="end_date"
-          value={form.end_date}
-          className="flex-1 border p-2 rounded"
-          onChange={handleChange}
-          required
-        />
+                    <div className="flex grid-cols-3 gap-2">
+                        <p className='w-88'>Check Out</p>
+                        <input
+                            min={new Date().toISOString().split('T')[0]}
+                            type="date"
+                            name="end_date"
+                            value={form.end_date}
+                            className="flex-1 border p-2 rounded"
+                            onChange={handleChange}
+                            required
+                        />
 
-        <input
-          type="time"
-          name="end_time"
-          value={form.end_time}
-          className="flex-1 border p-2 rounded"
-          onChange={handleChange}
-          required
-        />
-      </div>
-                    
+                        <input
+                            type="time"
+                            name="end_time"
+                            value={form.end_time}
+                            className="flex-1 border p-2 rounded"
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
                     <input
                         type="text"
                         name="name"

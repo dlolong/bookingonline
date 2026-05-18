@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
-import BookingForm from './BookingForm'
+import PublicBookingForm from './PublicBookingForm'
 
 export async function generateMetadata({ params }) {
   // const params = await params
@@ -9,47 +9,47 @@ export async function generateMetadata({ params }) {
   }
 }
 
-export default async function PublicBookingPage(props) {
-  const params = await props.params
-  const slug = params?.slug
+export default async function PublicBookingPage({ params }) {
+  const { slug } = await params
 
-  console.log('PUBLIC BOOKING PARAMS:', params)
-  console.log('PUBLIC BOOKING SLUG:', slug)
-
-  if (!slug) {
-    return <div className="p-6">No slug found in URL</div>
-  }
-
-  const { data: resort, error } = await supabase
+  const { data: resort } = await supabase
     .from('resorts')
     .select('id, name, slug')
     .eq('slug', slug)
     .maybeSingle()
 
-  console.log('RESORT:', resort)
-  console.log('SUPABASE ERROR:', error)
-
-  if (error || !resort) {
+  if (!resort) {
     return (
       <div className="p-6 text-center">
-        Resort not found for slug: {slug}
+        Resort not found
       </div>
     )
   }
 
+  const { data: bookings } = await supabase
+    .from('bookings')
+    .select('id, start_datetime, end_datetime, status')
+    .eq('resort_id', resort.id)
+    .in('status', ['confirmed'])
+
   return (
-    <div className="p-6 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-2 capitalize">
-        {resort.name}
-      </h1>
+    <div className="min-h-screen bg-gray-50 px-3 sm:px-6 py-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold capitalize">
+            {resort.name}
+          </h1>
 
+          <p className="text-gray-500">
+            Select available dates and send your reservation request
+          </p>
+        </div>
 
-
-      {/* <p className="text-gray-500 mb-6">
-        Booking slug: {slug}
-      </p> */}
-
-      <BookingForm resort={resort} />
+        <PublicBookingForm
+          resort={resort}
+          bookings={bookings || []}
+        />
+      </div>
     </div>
   )
 }

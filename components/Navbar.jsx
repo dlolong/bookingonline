@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { useApp } from '@/context/AppContext'
 import Loader from '@/components/Loader'
@@ -10,6 +10,7 @@ import Image from 'next/image'
 
 export default function Navbar() {
   const router = useRouter()
+    const pathname = usePathname()
 
   const {
     user,
@@ -197,7 +198,7 @@ export default function Navbar() {
                   )}
                 </div>
               ) : (
-                <>
+                !pathname.includes("public-booking") && <>
                   <button
                     onClick={() => router.push('/login')}
                     className="cursor-pointer px-4 py-2 rounded border"
