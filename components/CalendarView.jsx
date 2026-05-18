@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { DayPicker, defaultLocale } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
 import { format, isSameDay } from 'date-fns'
@@ -76,15 +76,11 @@ function getSlotForDay(day, booking) {
   return 'full'
 }
 
-export default function CalendarView({ bookings = [], onAddBooking }) {
+export default function CalendarView({ bookings = [], onAddBooking, onCancelBooking }) {
   const { refreshBookings } = useApp()
   const [selectedDate, setSelectedDate] = useState(null)
   const [selectedBookings, setSelectedBookings] = useState([])
   const [openModal, setOpenModal] = useState(false)
-
-  const [cancelBooking, setCancelBooking] = useState(null)
-  const [cancelReason, setCancelReason] = useState('')
-  const [cancelling, setCancelling] = useState(false)
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -115,39 +111,6 @@ export default function CalendarView({ bookings = [], onAddBooking }) {
     setSelectedBookings([])
   }
 
-  const handleCancelBooking = async () => {
-    if (!cancelBooking) return
-
-    if (!cancelReason.trim()) {
-      alert('Please enter cancellation reason.')
-      return
-    }
-
-    setCancelling(true)
-
-    const { error } = await supabase
-      .from('bookings')
-      .update({
-        status: 'cancelled',
-        cancellation_reason: cancelReason,
-        cancelled_at: new Date().toISOString(),
-      })
-      .eq('id', cancelBooking.id)
-
-    setCancelling(false)
-
-    if (error) {
-      console.error(error)
-      alert('Failed to cancel booking.')
-      return
-    }
-
-    setCancelBooking(null)
-    setCancelReason('')
-    setOpenModal(false)
-    await refreshBookings()
-  }
-
   return (
     <div className='[text-align:-webkit-center]'>
       <DayPicker
@@ -174,7 +137,7 @@ export default function CalendarView({ bookings = [], onAddBooking }) {
                 className={
                   `relative w-10 h-10 md:w-14 md:h-14 rounded-full overflow-hidden flex items-center justify-center transition
         ${isToday ? 'ring-2 ring-blue-500 font-bold' : 'border-gray-200'}
-        hover:scale-105 disabled:opacity-50 hover:enabled:bg-gray-200 enabled:cursor-pointer cursor-default`}
+        hover:scale-105 disabled:opacity-90 hover:enabled:bg-gray-200 enabled:cursor-pointer cursor-default`}
               >
                 {/* Full day */}
                 {fullBooking && (
@@ -260,49 +223,6 @@ export default function CalendarView({ bookings = [], onAddBooking }) {
         // }}
       /> */}
 
-      {cancelBooking && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl p-6">
-            <h3 className="text-lg font-bold mb-2">
-              Cancel Booking
-            </h3>
-
-            <p className="text-sm text-gray-600 mb-4">
-              Please provide a reason for cancelling{' '}
-              <strong>{cancelBooking.name}</strong>'s booking.
-            </p>
-
-            <textarea
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="Reason for cancellation"
-              className="w-full border rounded p-3 min-h-[100px]"
-            />
-
-            <div className="flex gap-2 justify-end mt-4">
-              <button
-                onClick={() => {
-                  setCancelBooking(null)
-                  setCancelReason('')
-                }}
-                disabled={cancelling}
-                className="cursor-pointer  px-4 py-2 rounded border"
-              >
-                Close
-              </button>
-
-              <button
-                onClick={handleCancelBooking}
-                disabled={cancelReason === "" || cancelling}
-                className="cursor-pointer  px-4 py-2 rounded bg-red-600 text-white disabled:bg-gray-400"
-              >
-                {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {openModal && (
         <div className="fixed inset-0 bg-black/40 flex justify-center z-50 p-4">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-6">
@@ -310,7 +230,7 @@ export default function CalendarView({ bookings = [], onAddBooking }) {
               <h3 className="text-lg font-bold">
                 Bookings for{' '}
                 {selectedDate
-                  ? format(selectedDate, 'MM-dd-yy')
+                  ? format(selectedDate, 'EEE, MMMM d,yyyy')
                   : ''}
               </h3>
 
@@ -362,10 +282,9 @@ export default function CalendarView({ bookings = [], onAddBooking }) {
                   <div>
                     <button
                       onClick={() => {
-                        setCancelBooking(booking)
-                        setCancelReason('')
+                        onCancelBooking(booking)
                       }}
-                      className="cursor-pointer  mt-4 p-2 bg-red-400 text-white py-2 rounded"
+                      className="cursor-pointer mt-4 p-2 border-1 border-red-100 text-red-300 py-2 rounded"
                     >
                       Cancel Booking
                     </button>

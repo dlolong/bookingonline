@@ -22,13 +22,50 @@ export default function DashboardCalendar({ onAddBooking }) {
   } = useApp()
 
   const [view, setView] = useState('calendar')
+  const [cancelBooking, setCancelBooking] = useState(null)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelling, setCancelling] = useState(false)
 
   if (initialLoading) {
     return <Loader text="Loading calendar..." />
   }
 
+  const handleCancelBooking = async () => {
+    if (!cancelBooking) return
+
+    if (!cancelReason.trim()) {
+      alert('Please enter cancellation reason.')
+      return
+    }
+
+    setCancelling(true)
+
+    const { error } = await supabase
+      .from('bookings')
+      .update({
+        status: 'cancelled',
+        cancellation_reason: cancelReason,
+        cancelled_at: new Date().toISOString(),
+      })
+      .eq('id', cancelBooking.id)
+
+    setCancelling(false)
+
+    if (error) {
+      console.error(error)
+      alert('Failed to cancel booking.')
+      return
+    }
+
+    setCancelBooking(null)
+    setCancelReason('')
+    setOpenModal(false)
+    await refreshBookings()
+  }
+
   return (
     <div className="bg-white rounded-2xl shadow-md p-4">
+
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-bold sr-only md:not-sr-only">Reserved</h2>
@@ -64,11 +101,13 @@ export default function DashboardCalendar({ onAddBooking }) {
 
       </div>
 
+
       {view === 'calendar' ? (
         <CalendarView
           bookings={confirmedBookings}
           onBookingCancelled={refreshBookings}
           onAddBooking={onAddBooking}
+          onCancelBooking={setCancelBooking}
         />
       ) : (
         <div className="space-y-3">
@@ -81,7 +120,7 @@ export default function DashboardCalendar({ onAddBooking }) {
             confirmedBookings.filter((b) => b.status === "confirmed").map((booking) => (
               <div
                 key={booking.id}
-                className="border-1 border-[#b7ddbb] rounded-xl p-4"
+                className="border-1 border-[#b7ddbb] bg-[#f5fff6] rounded-xl p-4"
               >
                 <div className="items-center justify-between">
                   <h6 className='flex items-center'>
@@ -112,10 +151,62 @@ export default function DashboardCalendar({ onAddBooking }) {
                       </p>
                     )}
                   </div>
+                  <div className="content-end justify-self-end">
+                    <button
+                      onClick={() => setCancelBooking(booking)}
+                      className="cursor-pointer border-1 border-red-200 text-red-300 px-2 py-1 rounded mt-1"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
           )}
+        </div>
+      )}
+
+
+      {cancelBooking && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl p-6">
+            <h3 className="text-lg font-bold mb-2">
+              Cancel Booking
+            </h3>
+
+            <p className="text-sm text-gray-600 mb-4">
+              Please provide a reason for cancelling{' '}
+              <strong>{cancelBooking.name}</strong>'s booking.
+            </p>
+
+            <textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Reason for cancellation"
+              className="w-full border rounded p-3 min-h-[100px]"
+            />
+
+            <div className="flex gap-2 justify-end mt-4">
+              <button
+                onClick={() => {
+                  setCancelBooking(null)
+                  setCancelReason('')
+                }}
+                disabled={cancelling}
+                className="cursor-pointer  px-4 py-2 rounded border"
+              >
+                Close
+              </button>
+
+              <button
+                onClick={handleCancelBooking}
+                disabled={cancelReason === "" || cancelling}
+                className="cursor-pointer  px-4 py-2 rounded bg-red-600 text-white disabled:bg-gray-400"
+              >
+                {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

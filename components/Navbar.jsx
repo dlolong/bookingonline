@@ -71,11 +71,8 @@ export default function Navbar() {
         {/* LEFT: Resort Title + Edit */}
         <div className="relative" ref={menuRef}>
           <div
-          onClick={(e) => {
-                  e.stopPropagation()
-                  setOpenMenu((prev) => !prev)
-                }}
-          className='pl-4 pr-4 rounded-full hover:bg-gray-100 cursor-pointer'>
+            onClick={() => router.push('/dashboard')}
+          className='pl-4 pr-4 rounded-full cursor-pointer'>
           <div
             className="flex items-center gap-2 content-center"
           >
@@ -85,7 +82,16 @@ export default function Navbar() {
 
             {/* ✏️ Edit Icon */}
             {user && resorts.length > 0 && (
-              <ChevronDown width={16}/>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setOpenMenu((prev) => !prev)
+                }}
+                className="text-[-webkit-center] w-6 text-gray-500 hover:bg-gray-300 hover:text-black text-sm rounded-full cursor-pointer"
+              >
+                <ChevronDown width={16}/>
+              </button>
+             
             )}
           </div>
 
@@ -99,7 +105,7 @@ export default function Navbar() {
 
           {/* 🔥 Popup Menu */}
           {openMenu && (
-            <div className="absolute mt-2 w-56 bg-white border border-1 border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+            <div className="absolute mt-2 w-[max-content] bg-white border border-1 border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden p-4">
               {resorts.map((resort) => (
                 <button
                   key={resort.id}
@@ -107,9 +113,9 @@ export default function Navbar() {
                     setSelectedResort(resort)
                     setOpenMenu(false)
                   }}
-                  className={`cursor-pointer block w-full text-left px-4 py-2 hover:bg-gray-200 ${selectedResort?.id === resort.id
-                    ? 'bg-gray-100 font-semibold'
-                    : ''
+                  className={`capitalize cursor-pointer block w-full text-left px-4 py-2 hover:bg-gray-200 ${selectedResort?.id === resort.id
+                    ? 'bg-green-100 font-semibold text-sm'
+                    : 'text-xs'
                     }`}
                 >
                   {resort.name}
