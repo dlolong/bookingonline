@@ -18,11 +18,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html>
-      <body>
+      <head>
+        <meta name="color-sheme" content="light"/>
+      </head>
+      <body className='bg-white text-black'>
         <AppProvider>
           <Navbar />
           <Toast />
-          <div className="">
+          <div className="pt-16">
             {children}
           </div>
         </AppProvider>
