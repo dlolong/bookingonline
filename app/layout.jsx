@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
         <AppProvider>
           <Navbar />
           <Toast />
-          <div className="pt-16">
+          <div className="">
             {children}
           </div>
         </AppProvider>

@@ -26,11 +26,11 @@ export default function DashboardPage() {
     refreshBookings()
   }
 
-  useEffect(() => {
-    if (!initialLoading && !getResortsProgress && (!user || (user && resorts?.length < 1))) {
-      router.push('/onboarding')
-    }
-  }, [user, resorts])
+  // useEffect(() => {
+  //   if (!initialLoading && !getResortsProgress && (!user || (user && resorts?.length < 1))) {
+  //     router.push('/onboarding')
+  //   }
+  // }, [user, resorts, getResortsProgress, initialLoading])
 
   return (
     <div className="p-6 bg-[#e3eff2]">

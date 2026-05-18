@@ -33,10 +33,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="p-6 max-w-md mx-auto">
+    <div className="flex items-center justify-center p-6 min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <div className='bg-white w-full max-w-md rounded-2xl shadow p-6'>
       <h1 className="text-xl font-bold mb-4">Login</h1>
 
-      <form onSubmit={handleLogin} className="space-y-3">
+      <form onSubmit={handleLogin}  className="space-y-3">
         <input
           type="email"
           placeholder="Email"
@@ -77,6 +78,7 @@ export default function LoginPage() {
           Forgot password?
         </button>
       </form>
+      </div>
     </div>
   )
 }

@@ -57,7 +57,7 @@ export default function OnboardingPage() {
       return
     }
 
-    router.push('/dashboard')
+    router.replace('/dashboard')
   }
 
   const handleClose = () => {
@@ -65,8 +65,8 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-96px)] bg-gray-100 flex items-center justify-center p-6">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow p-6">
+    <div className="flex items-center justify-center p-6 min-h-screen bg-gradient-to-b from-blue-50 to-white">
+       <div className='bg-white w-full max-w-md rounded-2xl shadow p-6'>
         
          <div className="flex items-center justify-between mb-4">
             <div>

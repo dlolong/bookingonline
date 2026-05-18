@@ -23,7 +23,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        emailRedirectTo: `https://resortbooking-y2hv.onrender.com/auth/confirm`,
       },
     })
 
@@ -54,7 +54,8 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="p-6 max-w-md mx-auto">
+     <div className="flex items-center justify-center p-6 min-h-screen bg-gradient-to-b from-blue-50 to-white">
+       <div className='bg-white w-full max-w-md rounded-2xl shadow p-6'>
       <h1 className="text-xl font-bold mb-4">Create Account</h1>
 
       <form onSubmit={handleSignup} className="space-y-3">
@@ -91,6 +92,7 @@ export default function SignupPage() {
           {loading ? 'Processing...' : 'Sign Up'}
         </button>
       </form>
+      </div>
     </div>
   )
 }

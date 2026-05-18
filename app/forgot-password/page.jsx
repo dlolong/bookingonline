@@ -14,7 +14,7 @@ export default function ForgotPasswordPage() {
     setLoading(true)
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `https://resortbooking-y2hv.onrender.com/reset-password`,
     })
 
     setLoading(false)
@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex items-center justify-center p-6">
+    <div className="flex items-center justify-center p-6 min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <form
         onSubmit={handleReset}
         className="bg-white w-full max-w-md rounded-2xl shadow p-6 space-y-4"
