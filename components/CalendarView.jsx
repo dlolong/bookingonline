@@ -1,13 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { DayPicker, defaultLocale } from 'react-day-picker'
+import { useState } from 'react'
+import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
-import { format, isSameDay } from 'date-fns'
+import { format, isBefore, isSameDay } from 'date-fns'
 import { Flag, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
 
-import { supabase } from '@/lib/supabaseClient'
-import { useApp } from '@/context/AppContext'
 
 const bookingColors = [
   '#a5ceb3', // pastel green
@@ -48,7 +46,7 @@ function getBookingsForDay(day, bookings) {
     const dayEnd = new Date(day)
     dayEnd.setHours(23, 59, 59, 999)
 
-    if(new Date() >= new Date(day)) {
+    if(isBefore(dayEnd, new Date())) {
       return false;
     }
 
