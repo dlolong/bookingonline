@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
+import { useApp } from '@/context/AppContext'
 import { X } from 'lucide-react'
 
 function createSlug(text) {
@@ -15,7 +16,7 @@ function createSlug(text) {
 
 export default function OnboardingPage() {
   const router = useRouter()
-
+  const { refreshAppData } = useApp()
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -57,7 +58,8 @@ export default function OnboardingPage() {
       return
     }
 
-    router.replace('/dashboard')
+    await refreshAppData()
+    router.push('/dashboard')
   }
 
   const handleClose = () => {

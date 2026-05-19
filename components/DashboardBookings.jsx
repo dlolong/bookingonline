@@ -11,6 +11,7 @@ export default function DashboardBookings() {
     const {
         selectedResort,
         pendingBookings,
+        confirmedBookings,
         refreshBookings,
         initialLoading,
         refreshing,
@@ -31,7 +32,7 @@ export default function DashboardBookings() {
             const newStart = new Date(confirmAction?.booking?.start_datetime)
             const newEnd = new Date(confirmAction?.booking?.end_datetime)
 
-            const hasConflict = (pendingBookings || []).some((booking) => {
+            const hasConflict = (confirmedBookings || []).some((booking) => {
                 const existingStart = new Date(
                     booking.start_datetime
                 )

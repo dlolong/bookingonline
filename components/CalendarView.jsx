@@ -265,9 +265,9 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
 
              <button
               onClick={handleAddBooking}
-              className="bg-blue-600 text-white px-3 py-2 md:px-4 rounded text-sm md:text-base cursor-pointer"
+              className="mt-4 bg-blue-600 text-white px-3 py-2 md:px-4 rounded text-sm md:text-base cursor-pointer"
             >
-              + Add Booking
+              + Add New Booking
             </button>
           </div>
         </div>
