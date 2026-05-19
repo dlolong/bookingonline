@@ -18,6 +18,8 @@ export default function PublicBookingForm({ resort, bookings }) {
     const [range, setRange] = useState()
     const [loading, setLoading] = useState(false)
     const [selectedDate, setSelectedDate] = useState(null)
+    const [activeTab, setActiveTab] = useState('availability')
+    const [submittedBooking, setSubmittedBooking] = useState(null)
 
     const defaultForm = {
         name: '',
@@ -37,6 +39,11 @@ export default function PublicBookingForm({ resort, bookings }) {
 
     const handleDayClick = (day) => {
         setSelectedDate(day)
+        setActiveTab('reservation')
+        setForm({
+            ...form,
+            start_date: format(new Date(day), 'yyyy-MM-dd')
+        })
 
         // const bookingsForDay = bookings.filter((booking) => {
         //     const start = new Date(booking.start_datetime)
@@ -69,6 +76,10 @@ export default function PublicBookingForm({ resort, bookings }) {
             const dayEnd = new Date(day)
             dayEnd.setHours(23, 59, 59, 999)
 
+            if (new Date() >= new Date(day)) {
+                return false;
+            }
+
             return start <= dayEnd && end >= dayStart
         })
     }
@@ -98,17 +109,17 @@ export default function PublicBookingForm({ resort, bookings }) {
     }
 
     const handleChange = (e) => {
-        setForm((prev) => ({
+        setForm({
+            ...form,
             [e.target.name]: e.target.value,
-        }))
+        })
     }
-
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
 
-        const newStart = new Date(form.start_datetime)
-        const newEnd = new Date(form.end_datetime)
+        const newStart = new Date(`${form.start_date}T${form.start_time}`)
+        const newEnd = new Date(`${form.end_date}T${form.end_time}`)
 
         if (newEnd <= newStart) {
             showToast({
@@ -131,6 +142,7 @@ export default function PublicBookingForm({ resort, bookings }) {
                 type: 'error',
                 message: 'Selected date/time is not available.',
             })
+            setForm({ ...form, start_date: '', end_date: '' })
             setLoading(false)
             return
         }
@@ -140,8 +152,8 @@ export default function PublicBookingForm({ resort, bookings }) {
                 resort_id: resort.id,
                 name: form.name,
                 contact: form.contact,
-                start_datetime: form.start_datetime,
-                end_datetime: form.end_datetime,
+                start_datetime: new Date(`${form.start_date}T${form.start_time}`),
+                end_datetime: new Date(`${form.end_date}T${form.end_time}`),
                 guests: Number(form.guests || 0),
                 notes: form.notes,
                 status: 'pending',
@@ -157,249 +169,379 @@ export default function PublicBookingForm({ resort, bookings }) {
             })
             return
         }
-
+        // TODO: CHANGE TO PAGE
         showToast({
             type: 'success',
             message: 'Booking request sent successfully.',
         })
 
-        setForm({
+        setSubmittedBooking({
+            resortName: resort.name,
+            name: form.name,
+            contact: form.contact,
+            start_datetime: new Date(`${form.start_date}T${form.start_time}`),
+            end_datetime: new Date(`${form.end_date}T${form.end_time}`),
+            guests: form.guests,
+            notes: form.notes,
+        })
+
+        setForm(defaultForm)
+        setRange(undefined)
+    }
+
+    const leftBox = (
+        <div className="bg-white rounded-2xl shadow p-4 sm:p-6 overflow-hidden">
+            <h2 className="text-xl font-bold mb-2 sr-only md:not-sr-only">
+                Availability Calendar
+            </h2>
+
+            <div className='[text-align:-webkit-center]'>
+                <DayPicker
+                    weekStartsOn={1}
+                    mode="single"
+                    selected={selectedDate}
+                    onDayClick={handleDayClick}
+                    disabled={{ before: today }}
+                    components={{
+                        DayButton: (props) => {
+                            const day = props.day.date
+                            const isToday = new Date().toDateString() === day.toDateString()
+
+                            const dayBookings = getBookingsForDay(day, bookings)
+
+                            const amBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'am')
+                            const pmBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'pm')
+                            const fullBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'full')
+
+                            return (
+                                <button
+                                    {...props}
+                                    type="button"
+                                    className={
+                                        `relative w-10 h-10 md:w-14 md:h-14 rounded-full overflow-hidden flex items-center justify-center transition
+                      ${isToday ? 'ring-2 ring-blue-500 font-bold' : 'border-gray-200'}
+                      hover:scale-105 disabled:opacity-90 hover:enabled:bg-gray-200 enabled:cursor-pointer cursor-default`}
+                                >
+                                    {/* Full day */}
+                                    {fullBooking && (
+                                        <span
+                                            className="absolute inset-0 shadow-inner bg-red-300"
+                                        />
+                                    )}
+
+                                    {/* AM */}
+                                    {amBooking && (
+                                        <span
+                                            className="absolute top-0 left-0 w-full h-1/2 bg-red-300"
+                                        />
+                                    )}
+
+                                    {/* PM */}
+                                    {pmBooking && (
+                                        <span
+                                            className="absolute bottom-0 left-0 w-full h-1/2 bg-red-300"
+                                        />
+                                    )}
+
+                                    {/* Today highlight overlay (subtle) */}
+                                    {isToday && (
+                                        <span className="absolute inset-0 rounded-full" />
+                                    )}
+
+                                    {/* Day number */}
+                                    <span className="relative z-10 text-sm font-semibold text-gray-800">
+                                        {format(day, 'd')}
+                                    </span>
+                                </button>
+                            )
+                        },
+                    }}
+                    classNames={{
+                        months: 'w-full',
+                        month: 'w-full',
+                        table: 'w-full',
+                        head_row: 'grid grid-cols-7',
+                        row: 'grid grid-cols-7',
+                        cell: 'flex justify-center p-0.5 sm:p-1',
+
+                        day: `
+                                w-9 h-9
+                                sm:w-10 sm:h-10
+                                md:w-11 md:h-11
+                                lg:w-12 lg:h-12
+                                rounded-full
+                                text-sm
+                            `,
+
+                        day_selected: 'bg-green-600 text-white',
+                        day_disabled: 'opacity-40 cursor-not-allowed',
+                        day_today: 'ring-2 ring-green-500',
+                    }}
+                />
+            </div>
+
+            <div className="flex gap-4 mt-5 text-sm content-center">
+                <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-green-600" />
+                    Selected
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-red-300 border" />
+                    Not vacant
+                </div>
+            </div>
+        </div>
+    )
+
+    const rightBox = (
+        <div className="bg-white rounded-2xl shadow p-4 sm:p-6 w-full overflow-hidden" >
+            <h2 className="text-xl font-bold mb-4 sr-only md:not-sr-only">
+                Reservation Form
+            </h2>
+
+            <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="mt-8 flex grid-cols-3 gap-2">
+                    <p className='w-88'>Check In</p>
+                    <input
+                        min={new Date().toISOString().split('T')[0]}
+                        type="date"
+                        name="start_date"
+                        value={form?.start_date}
+                        className="flex-1 border p-2 rounded"
+                        onChange={handleChange}
+                    />
+
+                    <input
+                        type="time"
+                        name="start_time"
+                        value={form?.start_time}
+                        className="flex-1 border p-2 rounded"
+                        onChange={handleChange}
+                    />
+                </div>
+
+
+                <div className="flex grid-cols-3 gap-2">
+                    <p className='w-88'>Check Out</p>
+                    <input
+                        min={(form.start_date ? new Date(form.start_date) : new Date()).toISOString().split('T')[0]}
+                        type="date"
+                        name="end_date"
+                        value={form?.end_date}
+                        className="flex-1 border p-2 rounded"
+                        onChange={handleChange}
+                    />
+
+                    <input
+                        type="time"
+                        name="end_time"
+                        value={form?.end_time}
+                        className="flex-1 border p-2 rounded"
+                        onChange={handleChange}
+                    />
+                </div>
+
+                <input
+                    name="name"
+                    value={form?.name}
+                    placeholder="Guest Name"
+                    className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
+                    onChange={handleChange}
+                />
+
+                <input
+                    type="number"
+                    name="contact"
+                    value={form?.contact}
+                    placeholder="Contact Number"
+                    className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
+                    onChange={handleChange}
+                />
+
+
+                <input
+                    type="number"
+                    name="guests"
+                    value={form?.guests}
+                    placeholder="Number of guests"
+                    className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
+                    onChange={handleChange}
+                />
+
+                <textarea
+                    name="notes"
+                    value={form?.notes}
+                    placeholder="Notes"
+                    className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
+                    onChange={handleChange}
+                />
+
+                <button
+                    disabled={
+                        loading
+                        || form.name === ''
+                        || form.contact === ''
+                        || !form.start_date
+                        || !form.start_time
+                        || !form.end_date
+                        || !form.end_time
+                        || !form.guests
+                        || form.notes === ''
+                    }
+                    className="cursor-default enabled:cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-400"
+                >
+                    {loading ? 'Submitting...' : 'Submit Booking'}
+                </button>
+
+                {/* <button
+  disabled={loading}
+  className="w-full bg-green-600 text-white py-3 rounded text-sm sm:text-base font-semibold disabled:bg-gray-400"
+>
+  {loading ? 'Submitting...' : 'Submit Reservation'}
+</button> */}
+            </form>
+        </div>
+    )
+
+    if (submittedBooking) {
+  return (
+    <div className="bg-white rounded-2xl shadow p-6 max-w-xl mx-auto text-center">
+      <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+        ✓
+      </div>
+
+      <h2 className="text-2xl font-bold mb-2">
+        Booking Request Sent!
+      </h2>
+
+      <p className="text-gray-600 mb-6">
+        Thank you, {submittedBooking.name}. Your booking request has been submitted.
+        The resort owner will contact you shortly to confirm your reservation.
+      </p>
+
+      <div className="text-left bg-gray-50 rounded-xl p-4 space-y-3">
+        <h3 className="font-bold text-lg mb-2">
+          Booking Details
+        </h3>
+
+        <p>
+          <span className="text-gray-500">Resort:</span>{' '}
+          <strong>{submittedBooking.resortName}</strong>
+        </p>
+
+        <p>
+          <span className="text-gray-500">Guest:</span>{' '}
+          <strong>{submittedBooking.name}</strong>
+        </p>
+
+        <p>
+          <span className="text-gray-500">Contact:</span>{' '}
+          <strong>{submittedBooking.contact}</strong>
+        </p>
+
+        <p>
+          <span className="text-gray-500">Check-in:</span>{' '}
+          <strong>
+            {format(new Date(submittedBooking.start_datetime), 'EEE, MMMM d, yyyy hh:mm a')}
+          </strong>
+        </p>
+
+        <p>
+          <span className="text-gray-500">Check-out:</span>{' '}
+          <strong>
+            {format(new Date(submittedBooking.end_datetime), 'EEE, MMMM d, yyyy hh:mm a')}
+          </strong>
+        </p>
+
+        <p>
+          <span className="text-gray-500">Guests:</span>{' '}
+          <strong>{submittedBooking.guests || 0}</strong>
+        </p>
+
+        {submittedBooking.notes && (
+          <p>
+            <span className="text-gray-500">Notes:</span>{' '}
+            <strong>{submittedBooking.notes}</strong>
+          </p>
+        )}
+
+        <p>
+          <span className="text-gray-500">Status:</span>{' '}
+          <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+            Pending confirmation
+          </span>
+        </p>
+      </div>
+
+      <button
+        onClick={() => {
+          setSubmittedBooking(null)
+          setRange(undefined)
+          setForm({
             name: '',
             contact: '',
             start_datetime: '',
             end_datetime: '',
             guests: '',
             notes: '',
-        })
-
-        setRange(undefined)
-    }
+          })
+        }}
+        className="mt-6 bg-green-600 text-white px-6 py-3 rounded-xl"
+      >
+        Submit Another Booking
+      </button>
+    </div>
+  )
+}
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-4 sm:gap-6 items-start">
-            {/* LEFT: Calendar */}
-            <div className="bg-white rounded-2xl shadow p-4 sm:p-6 overflow-hidden">
-                <h2 className="text-xl font-bold mb-2">
-                    Availability Calendar
-                </h2>
+        <>
+        <div className="text-center mb-8 mt-2">
+          <h1 className="text-3xl font-bold capitalize">
+            {resort.name}
+          </h1>
 
-                <p className="text-sm text-gray-500 mb-4">
-                    Unavailable dates are disabled.
-                </p>
-
-                <div className='[text-align:-webkit-center]'>
-                    <DayPicker
-                        weekStartsOn={1}
-                        mode="single"
-                        selected={selectedDate}
-                        onDayClick={handleDayClick}
-                        disabled={{ before: today }}
-                        components={{
-                            DayButton: (props) => {
-                                const day = props.day.date
-                                const isToday = new Date().toDateString() === day.toDateString()
-
-                                const dayBookings = getBookingsForDay(day, bookings)
-
-                                const amBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'am')
-                                const pmBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'pm')
-                                const fullBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'full')
-
-                                return (
-                                    <button
-                                        {...props}
-                                        type="button"
-                                        className={
-                                            `relative w-10 h-10 md:w-14 md:h-14 rounded-full overflow-hidden flex items-center justify-center transition
-                      ${isToday ? 'ring-2 ring-blue-500 font-bold' : 'border-gray-200'}
-                      hover:scale-105 disabled:opacity-90 hover:enabled:bg-gray-200 enabled:cursor-pointer cursor-default`}
-                                    >
-                                        {/* Full day */}
-                                        {fullBooking && (
-                                            <span
-                                                className="absolute inset-0 shadow-inner bg-red-300"
-                                            />
-                                        )}
-
-                                        {/* AM */}
-                                        {amBooking && (
-                                            <span
-                                                className="absolute top-0 left-0 w-full h-1/2 bg-red-300"
-                                            />
-                                        )}
-
-                                        {/* PM */}
-                                        {pmBooking && (
-                                            <span
-                                                className="absolute bottom-0 left-0 w-full h-1/2 bg-red-300"
-                                            />
-                                        )}
-
-                                        {/* Today highlight overlay (subtle) */}
-                                        {isToday && (
-                                            <span className="absolute inset-0 rounded-full" />
-                                        )}
-
-                                        {/* Day number */}
-                                        <span className="relative z-10 text-sm font-semibold text-gray-800">
-                                            {format(day, 'd')}
-                                        </span>
-                                    </button>
-                                )
-                            },
-                        }}
-                        classNames={{
-                            months: 'w-full',
-                            month: 'w-full',
-                            table: 'w-full',
-                            head_row: 'grid grid-cols-7',
-                            row: 'grid grid-cols-7',
-                            cell: 'flex justify-center p-0.5 sm:p-1',
-
-                            day: `
-    w-9 h-9
-    sm:w-10 sm:h-10
-    md:w-11 md:h-11
-    lg:w-12 lg:h-12
-    rounded-full
-    text-sm
-    hover:bg-green-100
-  `,
-
-                            day_selected: 'bg-green-600 text-white',
-                            day_disabled: 'opacity-40 cursor-not-allowed',
-                            day_today: 'ring-2 ring-green-500',
-                        }}
-                    />
-                </div>
-
-                <div className="flex gap-4 mt-5 text-sm content-center">
-                    <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded bg-green-600" />
-                        Selected
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded bg-red-300 border" />
-                        Not vacant
-                    </div>
-                </div>
-            </div>
-
-            {/* RIGHT: Form */}
-            <div className="bg-white rounded-2xl shadow p-4 sm:p-6 w-full overflow-hidden">
-                <h2 className="text-xl font-bold mb-4">
-                    Reservation Form
-                </h2>
-
-                <form onSubmit={handleSubmit} className="space-y-3">
-                    <div className="mt-8 flex grid-cols-3 gap-2">
-                        <p className='w-88'>Check Out</p>
-                        <input
-                            min={new Date().toISOString().split('T')[0]}
-                            type="date"
-                            name="start_date"
-                            value={form.start_date}
-                            className="flex-1 border p-2 rounded"
-                            onChange={handleChange}
-                            required
-                        />
-
-                        <input
-                            type="time"
-                            name="start_time"
-                            value={form.start_time}
-                            className="flex-1 border p-2 rounded"
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-
-                    <div className="flex grid-cols-3 gap-2">
-                        <p className='w-88'>Check Out</p>
-                        <input
-                            min={new Date().toISOString().split('T')[0]}
-                            type="date"
-                            name="end_date"
-                            value={form.end_date}
-                            className="flex-1 border p-2 rounded"
-                            onChange={handleChange}
-                            required
-                        />
-
-                        <input
-                            type="time"
-                            name="end_time"
-                            value={form.end_time}
-                            className="flex-1 border p-2 rounded"
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    <input
-                        type="text"
-                        name="name"
-                        value={form.name}
-                        placeholder="Guest Name"
-                        className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
-                        onChange={handleChange}
-                        required
-                    />
-
-                    <input
-                        type="text"
-                        name="contact"
-                        value={form.contact}
-                        placeholder="Contact Number"
-                        className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
-                        onChange={handleChange}
-                    />
-
-
-                    <input
-                        type="number"
-                        name="guests"
-                        value={form.guests}
-                        placeholder="Number of guests"
-                        className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
-                        onChange={handleChange}
-                    />
-
-                    <textarea
-                        name="notes"
-                        value={form.notes}
-                        placeholder="Notes"
-                        className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
-                        onChange={handleChange}
-                    />
-
-                    <button
-                        disabled={
-                            loading
-                            || form.name === ''
-                            || form.contact === ''
-                            || !form.start_date
-                            || !form.start_time
-                            || !form.end_date
-                            || !form.end_time
-                            || !form.guests
-                            || form.notes === ''
-                        }
-                        className="cursor-default enabled:cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-700"
-                    >
-                        {loading ? 'Submitting...' : 'Submit Booking'}
-                    </button>
-
-                    {/* <button
-  disabled={loading}
-  className="w-full bg-green-600 text-white py-3 rounded text-sm sm:text-base font-semibold disabled:bg-gray-400"
->
-  {loading ? 'Submitting...' : 'Submit Reservation'}
-</button> */}
-                </form>
-            </div>
+          <p className="text-gray-500">
+            Select available dates and send your reservation request
+          </p>
         </div>
+
+            {/* Mobile tabs only */}
+            <div className="flex gap-2 border-b border-[#cacecf] mb-6 md:hidden">
+                <button
+                    onClick={() => setActiveTab('availability')}
+                    className={`cursor-pointer  px-4 py-2 ${activeTab === 'availability'
+                        ? 'border-b-2 border-[#29b55a] text-[#29b55a] font-semibold'
+                        : 'text-gray-500'
+                        }`}
+                >
+                    Availability Calendar
+                </button>
+                <button
+                    onClick={() => setActiveTab('reservation')}
+                    className={`cursor-pointer px-4 py-2 ${activeTab === 'reservation'
+                        ? 'border-b-2 border-[#29b55a] text-[#29b55a] font-semibold'
+                        : 'text-gray-500'
+                        }`}
+                >
+                    Reservation Form
+                </button>
+            </div>
+
+            {/* Mobile view */}
+            <div className="md:hidden pb-32">
+                {activeTab === 'availability' && leftBox}
+                {activeTab === 'reservation' && rightBox}
+            </div>
+
+            {/* Desktop / tablet view: side by side */}
+            <div className="hidden pb-32 md:grid md:grid-cols-2 gap-6 items-start">
+                {leftBox}
+                <div className='md:pl-4'>
+                    {rightBox}
+                </div>
+            </div>
+        </>
     )
 }

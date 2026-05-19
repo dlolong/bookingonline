@@ -49,16 +49,7 @@ export default function AddBookingModal({
     }
 
     const resetForm = () => {
-        setForm({
-            name: '',
-            contact: '',
-            start_date: '',
-            start_time: '14:00',
-            end_date: '',
-            end_time: '12:00',
-            guests: '',
-            notes: '',
-        })
+        setForm(defaultForm)
     }
 
     const handleSubmit = async (e) => {
@@ -181,7 +172,6 @@ export default function AddBookingModal({
                             value={form.start_date}
                             className="flex-1 border p-2 rounded"
                             onChange={handleChange}
-                            required
                         />
 
                         <input
@@ -190,7 +180,6 @@ export default function AddBookingModal({
                             value={form.start_time}
                             className="flex-1 border p-2 rounded"
                             onChange={handleChange}
-                            required
                         />
                     </div>
 
@@ -198,13 +187,12 @@ export default function AddBookingModal({
                     <div className="flex grid-cols-3 gap-2">
                         <p className='w-88'>Check Out</p>
                         <input
-                            min={new Date().toISOString().split('T')[0]}
+                            min={(form.start_date ? new Date(form.start_date) : new Date()).toISOString().split('T')[0]}
                             type="date"
                             name="end_date"
                             value={form.end_date}
                             className="flex-1 border p-2 rounded"
                             onChange={handleChange}
-                            required
                         />
 
                         <input
@@ -213,7 +201,6 @@ export default function AddBookingModal({
                             value={form.end_time}
                             className="flex-1 border p-2 rounded"
                             onChange={handleChange}
-                            required
                         />
                     </div>
 
@@ -224,7 +211,6 @@ export default function AddBookingModal({
                         placeholder="Guest Name"
                         className="w-full border p-2 rounded"
                         onChange={handleChange}
-                        required
                     />
 
                     <input
@@ -266,7 +252,7 @@ export default function AddBookingModal({
                             || form.notes === ''
                             && (addBookingProgress || !selectedResort)
                         }
-                        className="w-full bg-[#29b55a] text-white py-2 rounded disabled:bg-gray-700 cursor-pointer disabled:cursor-default"
+                        className="w-full bg-[#29b55a] text-white py-2 rounded disabled:bg-gray-400 cursor-pointer disabled:cursor-default"
                     >
                         {addBookingProgress ? 'Saving...' : 'Save Booking'}
                     </button>

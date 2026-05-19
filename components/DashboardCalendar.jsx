@@ -202,7 +202,7 @@ export default function DashboardCalendar({ onAddBooking }) {
               <button
                 onClick={handleCancelBooking}
                 disabled={cancelReason === "" || cancelling}
-                className="cursor-pointer  px-4 py-2 rounded bg-red-600 text-white disabled:bg-gray-700"
+                className="cursor-pointer  px-4 py-2 rounded bg-red-600 text-white disabled:bg-gray-400"
               >
                 {cancelling ? 'Cancelling...' : 'Confirm Cancel'}
               </button>

@@ -48,6 +48,10 @@ function getBookingsForDay(day, bookings) {
     const dayEnd = new Date(day)
     dayEnd.setHours(23, 59, 59, 999)
 
+    if(new Date() >= new Date(day)) {
+      return false;
+    }
+
     return start <= dayEnd && end >= dayStart
   })
 }
@@ -77,7 +81,6 @@ function getSlotForDay(day, booking) {
 }
 
 export default function CalendarView({ bookings = [], onAddBooking, onCancelBooking }) {
-  const { refreshBookings } = useApp()
   const [selectedDate, setSelectedDate] = useState(null)
   const [selectedBookings, setSelectedBookings] = useState([])
   const [openModal, setOpenModal] = useState(false)
@@ -111,6 +114,11 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
     setSelectedBookings([])
   }
 
+  const handleAddBooking = () => {
+    setOpenModal(false)
+    onAddBooking(selectedDate)
+  }
+
   return (
     <div className='[text-align:-webkit-center]'>
       <DayPicker
@@ -123,6 +131,7 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
           DayButton: (props) => {
             const day = props.day.date
             const isToday = new Date().toDateString() === day.toDateString()
+            const isDone =  new Date().toDateString() >= day.toDateString()
 
             const dayBookings = getBookingsForDay(day, bookings)
 
@@ -253,6 +262,13 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
                 </div>
               ))}
             </div>
+
+             <button
+              onClick={handleAddBooking}
+              className="bg-blue-600 text-white px-3 py-2 md:px-4 rounded text-sm md:text-base cursor-pointer"
+            >
+              + Add Booking
+            </button>
           </div>
         </div>
       )}

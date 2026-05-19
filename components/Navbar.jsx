@@ -82,10 +82,10 @@ export default function Navbar() {
               {selectedResort?.name}
             </h1> : (
                <Image
-                  src="/logo2.png"
+                  src="/logo.png"
                   alt="Resort Logo"
                   width={100}
-                  height={80}
+                  height={0}
                   className="rounded-lg"
                   priority
                 />
@@ -98,7 +98,7 @@ export default function Navbar() {
                   e.stopPropagation()
                   setOpenMenu((prev) => !prev)
                 }}
-                className="[text-align:-webkit-center] w-6 text-gray-500 hover:bg-gray-700 hover:text-black text-sm rounded-full cursor-pointer"
+                className="[text-align:-webkit-center] w-6 text-gray-700 hover:bg-gray-300 hover:text-black text-sm rounded-full cursor-pointer"
               >
                 <ChevronDown width={16}/>
               </button>
@@ -116,7 +116,7 @@ export default function Navbar() {
 
           {/* 🔥 Popup Menu */}
           {openMenu && (
-            <div className="absolute mt-2 w-[max-content] bg-white border border-1 border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden p-4">
+            <div className="absolute mt-2 w-[max-content] bg-white border border-1 border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden p-5">
               {resorts.map((resort) => (
                 <button
                   key={resort.id}
@@ -133,7 +133,7 @@ export default function Navbar() {
                 </button>
               ))}
 
-              <div className="border-t border-t-gray-700 mt-1" />
+              <div className="mt-4" />
 
               <button
                 onClick={() => {
@@ -178,7 +178,7 @@ export default function Navbar() {
                         </p>
                       </div>
 
-                      <button
+                      {/* <button
                         onClick={() => {
                           setOpenUserMenu(false)
                           router.push('/settings')
@@ -186,7 +186,7 @@ export default function Navbar() {
                         className="block w-full text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
                       >
                         Settings
-                      </button>
+                      </button> */}
 
                       <button
                         onClick={logout}

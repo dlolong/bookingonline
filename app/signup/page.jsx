@@ -54,7 +54,7 @@ export default function SignupPage() {
   }
 
   return (
-     <div className="flex items-center justify-center p-6 min-h-screen bg-gradient-to-b from-blue-50 to-white">
+     <div className="flex items-center justify-center p-6 bg-gradient-to-b from-blue-50 to-white">
        <div className='bg-white w-full max-w-md rounded-2xl shadow p-6'>
       <h1 className="text-xl font-bold mb-4">Create Account</h1>
 
@@ -87,7 +87,7 @@ export default function SignupPage() {
 
        <button
           disabled={loading || !email || !password}
-          className={'cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-700 rounded-xl'}
+          className={'cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-400 rounded-xl'}
         >
           {loading ? 'Processing...' : 'Sign Up'}
         </button>

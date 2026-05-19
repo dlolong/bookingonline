@@ -8,7 +8,7 @@ export default function WelcomePage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <section className="max-w-6xl mx-auto px-6 py-20 text-center">
+      <section className="max-w-6xl mx-auto px-6 py-14 text-center">
         <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
           Manage Resort Bookings Without the Stress
         </h1>
@@ -30,7 +30,7 @@ export default function WelcomePage() {
         </p>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 py-12 grid md:grid-cols-3 gap-6">
+      <section className="max-w-6xl mx-auto px-6 py-6 grid md:grid-cols-3 gap-6">
         <div className="bg-white rounded-2xl shadow p-6">
           <div className="text-3xl mb-3">📅</div>
           <h3 className="text-xl font-bold mb-2">

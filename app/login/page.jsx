@@ -33,7 +33,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center p-6 min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="flex items-center justify-center p-6 bg-gradient-to-b from-blue-50 to-white">
       <div className='bg-white w-full max-w-md rounded-2xl shadow p-6'>
       <h1 className="text-xl font-bold mb-4">Login</h1>
 
@@ -66,7 +66,7 @@ export default function LoginPage() {
 
         <button
           disabled={loading || !password || !email}
-          className={'cursor-pointer w-full bg-blue-600 text-white p-2 rounded-xl disabled:bg-gray-700'}
+          className={'cursor-pointer w-full bg-blue-600 text-white p-2 rounded-xl disabled:bg-gray-400'}
         >
           {loading ? 'Processing...' : 'Login'}
         </button>

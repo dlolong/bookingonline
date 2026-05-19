@@ -65,7 +65,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="flex items-center justify-center p-6 min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="flex items-center justify-center p-6 bg-gradient-to-b from-blue-50 to-white">
        <div className='bg-white w-full max-w-md rounded-2xl shadow p-6'>
         
          <div className="flex items-center justify-between mb-4">
@@ -115,7 +115,7 @@ export default function OnboardingPage() {
 
           <button
             disabled={loading || !name}
-            className="w-full bg-[#29b55a] disabled:bg-gray-700 text-white p-3 rounded cursor-pointer"
+            className="w-full bg-[#29b55a] disabled:bg-gray-400 text-white p-3 rounded cursor-pointer"
           >
             {loading ? 'Creating...' : 'Create Resort'}
           </button>

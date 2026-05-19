@@ -35,16 +35,6 @@ export default async function PublicBookingPage({ params }) {
   return (
     <div className="min-h-screen bg-gray-50 px-3 sm:px-6 py-6">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold capitalize">
-            {resort.name}
-          </h1>
-
-          <p className="text-gray-500">
-            Select available dates and send your reservation request
-          </p>
-        </div>
-
         <PublicBookingForm
           resort={resort}
           bookings={bookings || []}
