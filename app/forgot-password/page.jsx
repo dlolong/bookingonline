@@ -13,8 +13,10 @@ export default function ForgotPasswordPage() {
     e.preventDefault()
     setLoading(true)
 
+   const url = process.env.NODE_ENV === "development" ?  'http://localhost:4000' : 'https://resortbooking-y2hv.onrender.com'
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `https://resortbooking-y2hv.onrender.com/reset-password`,
+      redirectTo: `${url}/reset-password`,
     })
 
     setLoading(false)
@@ -34,7 +36,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex items-center justify-center p-6 min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="flex items-center justify-center p-6 bg-gradient-to-b from-blue-50 to-white">
       <form
         onSubmit={handleReset}
         className="bg-white w-full max-w-md rounded-2xl shadow p-6 space-y-4"
@@ -56,7 +58,7 @@ export default function ForgotPasswordPage() {
 
         <button
           disabled={loading}
-          className="w-full bg-[#29b55a] text-white p-3 rounded disabled:bg-gray-400"
+          className="w-full bg-[#29b55a] text-white p-3 rounded disabled:bg-gray-400 cursor-pointer"
         >
           {loading ? 'Sending...' : 'Send Reset Link'}
         </button>

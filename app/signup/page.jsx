@@ -19,11 +19,13 @@ export default function SignupPage() {
     e.preventDefault()
     setLoading(true)
 
+    const url = process.env.NODE_ENV === "development" ?  'http://localhost:4000' : 'https://resortbooking-y2hv.onrender.com'
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `https://resortbooking-y2hv.onrender.com/auth/confirm`,
+        emailRedirectTo: `${url}/auth/confirm`,
       },
     })
 
