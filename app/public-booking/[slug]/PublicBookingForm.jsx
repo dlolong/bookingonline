@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
-import { format, isSameDay } from 'date-fns'
+import { format, isSameDay, isBefore } from 'date-fns'
 import { supabase } from '@/lib/supabaseClient'
 import { useApp } from '@/context/AppContext'
 
@@ -76,7 +76,7 @@ export default function PublicBookingForm({ resort, bookings }) {
             const dayEnd = new Date(day)
             dayEnd.setHours(23, 59, 59, 999)
 
-            if (new Date() >= new Date(day)) {
+            if(isBefore(dayEnd, new Date())) {
                 return false;
             }
 
