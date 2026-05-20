@@ -8,20 +8,20 @@ import { Flag, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
 
 
 const bookingColors = [
-  '#a5ceb3', // pastel green
-  '#f3ca4e', // pastel orange
-  '#a9c2e0', // pastel blue
-  '#e4a1e7', // pastel purple
-  '#86c8ba', // pastel red
-  '#a5d472', // pastel teal
-  '#74dce0', // pastel yellow
-  '#abd189', // pastel green
-  '#dcd464', // pastel orange
-  '#b99bd5', // pastel blue
-  '#ea83d9', // pastel purple
-  '#e7b950', // pastel red
-  '#4caf9b', // pastel teal
-  '#c0ca3c', // pastel yellow
+  '#20c657', // pastel green
+  '#f9bb00', // pastel orange
+  '#5b95db', // pastel blue
+  '#d148d8', // pastel purple
+  '#32a88f', // pastel red
+  '#65a71e', // pastel teal
+  '#3baaae', // pastel yellow
+  '#59b10c', // pastel green
+  '#c0b300', // pastel orange
+  '#a960ed', // pastel blue
+  '#ec56d3', // pastel purple
+  '#d49d1e', // pastel red
+  '#22ae92', // pastel teal
+  '#a8b314', // pastel yellow
 ]
 
 function getBookingColor(booking, bookings) {
@@ -45,10 +45,6 @@ function getBookingsForDay(day, bookings) {
 
     const dayEnd = new Date(day)
     dayEnd.setHours(23, 59, 59, 999)
-
-    if(isBefore(dayEnd, new Date())) {
-      return false;
-    }
 
     return start <= dayEnd && end >= dayStart
   })

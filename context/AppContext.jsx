@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { usePathname, useRouter } from 'next/navigation'
+import { isEqual } from 'date-fns'
 
 const AppContext = createContext(null)
 
@@ -80,11 +81,13 @@ export function AppProvider({ children }) {
 
     setBookingsLoading(true)
 
+     const now = new Date().toISOString()
     const { data, error } = await supabase
       .from('bookings')
       .select('*')
       .eq('resort_id', resortId)
       .in('status', ['confirmed', 'pending'])
+      .gte('end_datetime', now)
       .order('start_datetime', { ascending: true })
 
     if (error) {

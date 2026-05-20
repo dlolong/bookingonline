@@ -76,10 +76,6 @@ export default function PublicBookingForm({ resort, bookings }) {
             const dayEnd = new Date(day)
             dayEnd.setHours(23, 59, 59, 999)
 
-            if(isBefore(dayEnd, new Date())) {
-                return false;
-            }
-
             return start <= dayEnd && end >= dayStart
         })
     }
@@ -282,11 +278,6 @@ export default function PublicBookingForm({ resort, bookings }) {
 
             <div className="flex gap-4 mt-5 text-sm content-center">
                 <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-green-600" />
-                    Selected
-                </div>
-
-                <div className="flex items-center gap-2">
                     <span className="w-4 h-4 rounded bg-red-300 border" />
                     Not vacant
                 </div>
@@ -383,11 +374,10 @@ export default function PublicBookingForm({ resort, bookings }) {
                         || form.name === ''
                         || form.contact === ''
                         || !form.start_date
-                        || !form.start_time
                         || !form.end_date
-                        || !form.end_time
                         || !form.guests
-                        || form.notes === ''
+                        || addBookingProgress
+                        || !selectedResort
                     }
                     className="cursor-default enabled:cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-400"
                 >

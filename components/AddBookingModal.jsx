@@ -245,12 +245,10 @@ export default function AddBookingModal({
                             form.name === ''
                             || form.contact === ''
                             || !form.start_date
-                            || !form.start_time
                             || !form.end_date
-                            || !form.end_time
                             || !form.guests
-                            || form.notes === ''
-                            && (addBookingProgress || !selectedResort)
+                            || addBookingProgress
+                            || !selectedResort
                         }
                         className="w-full bg-[#29b55a] text-white py-2 rounded disabled:bg-gray-400 cursor-pointer disabled:cursor-default"
                     >
