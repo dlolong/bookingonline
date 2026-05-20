@@ -6,10 +6,28 @@ import 'react-day-picker/dist/style.css'
 import { format, isSameDay, isBefore } from 'date-fns'
 import { supabase } from '@/lib/supabaseClient'
 import { useApp } from '@/context/AppContext'
+import { formatAmountInput, parseAmount, formatAmount } from '@/utils/amount'
 
 function toDateTimeLocal(date, time = '14:00') {
     if (!date) return ''
     return `${format(date, 'yyyy-MM-dd')}T${time}`
+}
+
+function normalizeMobile(value) {
+    if (value.startsWith('09')) {
+        return '+63' + value.slice(1)
+    }
+    if (value.startsWith('639')) {
+        return '+' + value
+    }
+    return value
+}
+
+function isValidMobileNumber(value) {
+    const cleaned = value.replace(/\s+/g, '')
+
+    const regex = /^(09|\+639|639)\d{9}$/
+    return regex.test(cleaned)
 }
 
 export default function PublicBookingForm({ resort, bookings }) {
@@ -28,6 +46,7 @@ export default function PublicBookingForm({ resort, bookings }) {
         start_time: '07:00',
         end_date: '',
         end_time: '17:00',
+        proposed_amount: '',
         guests: '',
         notes: '',
     }
@@ -104,6 +123,7 @@ export default function PublicBookingForm({ resort, bookings }) {
         return 'full'
     }
 
+
     const handleChange = (e) => {
         setForm({
             ...form,
@@ -116,6 +136,16 @@ export default function PublicBookingForm({ resort, bookings }) {
 
         const newStart = new Date(`${form.start_date}T${form.start_time}`)
         const newEnd = new Date(`${form.end_date}T${form.end_time}`)
+
+        if (!isValidMobileNumber(form.contact)) {
+            showToast({
+                type: 'error',
+                message:
+                    'Please enter a valid mobile number (e.g. 09171234567 or +639171234567)',
+            })
+            setLoading(false)
+            return
+        }
 
         if (newEnd <= newStart) {
             showToast({
@@ -147,10 +177,12 @@ export default function PublicBookingForm({ resort, bookings }) {
             {
                 resort_id: resort.id,
                 name: form.name,
-                contact: form.contact,
+                contact: normalizeMobile(form.contact),
                 start_datetime: new Date(`${form.start_date}T${form.start_time}`),
                 end_datetime: new Date(`${form.end_date}T${form.end_time}`),
                 guests: Number(form.guests || 0),
+                proposed_amount: parseAmount(form.proposed_amount),
+                agreed_amount: 0,
                 notes: form.notes,
                 status: 'pending',
             },
@@ -177,6 +209,7 @@ export default function PublicBookingForm({ resort, bookings }) {
             contact: form.contact,
             start_datetime: new Date(`${form.start_date}T${form.start_time}`),
             end_datetime: new Date(`${form.end_date}T${form.end_time}`),
+            proposed_amount: parseAmount(form.proposed_amount),
             guests: form.guests,
             notes: form.notes,
         })
@@ -342,12 +375,16 @@ export default function PublicBookingForm({ resort, bookings }) {
                 />
 
                 <input
-                    type="number"
                     name="contact"
-                    value={form?.contact}
-                    placeholder="Contact Number"
-                    className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
-                    onChange={handleChange}
+                    value={form.contact}
+                    onChange={(e) => {
+                        // allow only numbers and +
+                        const value = e.target.value.replace(/[^\d+]/g, '')
+                        handleChange({ target: { name: 'contact', value } })
+                    }}
+                    placeholder="09XXXXXXXXX"
+                    className="w-full border px-3 py-2.5 sm:p-3 rounded"
+                    maxLength={13}
                 />
 
 
@@ -359,6 +396,26 @@ export default function PublicBookingForm({ resort, bookings }) {
                     className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
                     onChange={handleChange}
                 />
+
+                <input
+                    type="text"
+                    name="proposed_amount"
+                    value={formatAmountInput(form.proposed_amount)}
+                    onChange={(e) => {
+                        const raw = e.target.value.replace(/[^\d]/g, '')
+
+                        setForm((prev) => ({
+                            ...prev,
+                            proposed_amount: raw,
+                        }))
+                    }}
+                    placeholder="Your Proposed Price"
+                    className="w-full border p-3 rounded"
+                />
+
+                <p className="text-xs text-gray-500 -mt-2">
+                    Enter your proposed price. The resort owner may contact you to negotiate.
+                </p>
 
                 <textarea
                     name="notes"
@@ -376,8 +433,6 @@ export default function PublicBookingForm({ resort, bookings }) {
                         || !form.start_date
                         || !form.end_date
                         || !form.guests
-                        || addBookingProgress
-                        || !selectedResort
                     }
                     className="cursor-default enabled:cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-400"
                 >
@@ -395,107 +450,112 @@ export default function PublicBookingForm({ resort, bookings }) {
     )
 
     if (submittedBooking) {
-  return (
-    <div className="bg-white rounded-2xl shadow p-6 max-w-xl mx-auto text-center">
-      <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-        ✓
-      </div>
+        return (
+            <div className="bg-white rounded-2xl shadow p-6 max-w-xl mx-auto text-center">
+                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                    ✓
+                </div>
 
-      <h2 className="text-2xl font-bold mb-2">
-        Booking Request Sent!
-      </h2>
+                <h2 className="text-2xl font-bold mb-2">
+                    Booking Request Sent!
+                </h2>
 
-      <p className="text-gray-600 mb-6">
-        Thank you, {submittedBooking.name}. Your booking request has been submitted.
-        The resort owner will contact you shortly to confirm your reservation.
-      </p>
+                <p className="text-gray-600 mb-6">
+                    Thank you, {submittedBooking.name}. Your booking request has been submitted.
+                    The resort owner will contact you shortly to confirm your reservation.
+                </p>
 
-      <div className="text-left bg-gray-50 rounded-xl p-4 space-y-3">
-        <h3 className="font-bold text-lg mb-2">
-          Booking Details
-        </h3>
+                <div className="text-left bg-gray-50 rounded-xl p-4 space-y-3">
+                    <h3 className="font-bold text-lg mb-2">
+                        Booking Details
+                    </h3>
 
-        <p>
-          <span className="text-gray-500">Resort:</span>{' '}
-          <strong>{submittedBooking.resortName}</strong>
-        </p>
+                    <p>
+                        <span className="text-gray-500">Resort:</span>{' '}
+                        <strong>{submittedBooking.resortName}</strong>
+                    </p>
 
-        <p>
-          <span className="text-gray-500">Guest:</span>{' '}
-          <strong>{submittedBooking.name}</strong>
-        </p>
+                    <p>
+                        <span className="text-gray-500">Guest:</span>{' '}
+                        <strong>{submittedBooking.name}</strong>
+                    </p>
 
-        <p>
-          <span className="text-gray-500">Contact:</span>{' '}
-          <strong>{submittedBooking.contact}</strong>
-        </p>
+                    <p>
+                        <span className="text-gray-500">Contact:</span>{' '}
+                        <strong>{submittedBooking.contact}</strong>
+                    </p>
 
-        <p>
-          <span className="text-gray-500">Check-in:</span>{' '}
-          <strong>
-            {format(new Date(submittedBooking.start_datetime), 'EEE, MMMM d, yyyy hh:mm a')}
-          </strong>
-        </p>
+                    <p>
+                        <span className="text-gray-500">Check-in:</span>{' '}
+                        <strong>
+                            {format(new Date(submittedBooking.start_datetime), 'EEE, MMMM d, yyyy hh:mm a')}
+                        </strong>
+                    </p>
 
-        <p>
-          <span className="text-gray-500">Check-out:</span>{' '}
-          <strong>
-            {format(new Date(submittedBooking.end_datetime), 'EEE, MMMM d, yyyy hh:mm a')}
-          </strong>
-        </p>
+                    <p>
+                        <span className="text-gray-500">Check-out:</span>{' '}
+                        <strong>
+                            {format(new Date(submittedBooking.end_datetime), 'EEE, MMMM d, yyyy hh:mm a')}
+                        </strong>
+                    </p>
 
-        <p>
-          <span className="text-gray-500">Guests:</span>{' '}
-          <strong>{submittedBooking.guests || 0}</strong>
-        </p>
+                    <p>
+                        <span className="text-gray-500">Guests:</span>{' '}
+                        <strong>{submittedBooking.guests || 0}</strong>
+                    </p>
 
-        {submittedBooking.notes && (
-          <p>
-            <span className="text-gray-500">Notes:</span>{' '}
-            <strong>{submittedBooking.notes}</strong>
-          </p>
-        )}
+                    <p>
+                        <span className="text-gray-500">Proposed Amount/Price:</span>{' '}
+                        <strong>{formatAmount(submittedBooking.proposed_amount)}</strong>
+                    </p>
 
-        <p>
-          <span className="text-gray-500">Status:</span>{' '}
-          <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
-            Pending confirmation
-          </span>
-        </p>
-      </div>
+                    {submittedBooking.notes && (
+                        <p>
+                            <span className="text-gray-500">Notes:</span>{' '}
+                            <strong>{submittedBooking.notes}</strong>
+                        </p>
+                    )}
 
-      <button
-        onClick={() => {
-          setSubmittedBooking(null)
-          setRange(undefined)
-          setForm({
-            name: '',
-            contact: '',
-            start_datetime: '',
-            end_datetime: '',
-            guests: '',
-            notes: '',
-          })
-        }}
-        className="mt-6 bg-green-600 text-white px-6 py-3 rounded-xl"
-      >
-        Submit Another Booking
-      </button>
-    </div>
-  )
-}
+                    <p>
+                        <span className="text-gray-500">Status:</span>{' '}
+                        <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+                            Pending confirmation
+                        </span>
+                    </p>
+                </div>
+
+                <button
+                    onClick={() => {
+                        setSubmittedBooking(null)
+                        setRange(undefined)
+                        setForm({
+                            name: '',
+                            contact: '',
+                            start_datetime: '',
+                            end_datetime: '',
+                            guests: '',
+                            notes: '',
+                        })
+                    }}
+                    className="mt-6 bg-green-600 text-white px-6 py-3 rounded-xl"
+                >
+                    Submit Another Booking
+                </button>
+            </div>
+        )
+    }
 
     return (
         <>
-        <div className="text-center mb-8 mt-2">
-          <h1 className="text-3xl font-bold capitalize">
-            {resort.name}
-          </h1>
+            <div className="text-center mb-8 mt-2">
+                <h1 className="text-3xl font-bold capitalize">
+                    {resort.name}
+                </h1>
 
-          <p className="text-gray-500">
-            Select available dates and send your reservation request
-          </p>
-        </div>
+                <p className="text-gray-500">
+                    Select available dates and send your reservation request
+                </p>
+            </div>
 
             {/* Mobile tabs only */}
             <div className="flex gap-2 border-b border-[#cacecf] mb-6 md:hidden">

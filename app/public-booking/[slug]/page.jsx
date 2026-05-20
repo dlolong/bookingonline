@@ -26,11 +26,20 @@ export default async function PublicBookingPage({ params }) {
     )
   }
 
-  const { data: bookings } = await supabase
-    .from('bookings')
-    .select('id, start_datetime, end_datetime, status')
-    .eq('resort_id', resort.id)
-    .in('status', ['confirmed'])
+  // const { data: bookings } = await supabase
+  //   .from('bookings')
+  //   .select('id, start_datetime, end_datetime, status')
+  //   .eq('resort_id', resort.id)
+  //   .in('status', ['confirmed'])
+
+     const now = new Date().toISOString()
+    const { data: bookings } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('resort_id', resort.id)
+      .in('status', ['confirmed'])
+      .gte('end_datetime', now)
+      .order('start_datetime', { ascending: true })
 
   return (
     <div className="min-h-screen bg-gray-50 px-3 sm:px-6 py-6">

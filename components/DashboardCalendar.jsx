@@ -7,6 +7,7 @@ import CalendarView from '@/components/CalendarView'
 import Loader from '@/components/Loader'
 import { format } from 'date-fns'
 import { CalendarDays, Flag, List, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
+import { formatAmount } from '@/utils/amount'
 
 function formatDateTime(datetime) {
   return format(new Date(datetime), 'MM-dd-yy HH:mm')
@@ -134,20 +135,23 @@ export default function DashboardCalendar({ onAddBooking }) {
 
                 <div className='grid grid-cols-2'>
 
-                  <div className="mt-3 space-y-0 text-sm text-black-600">
-                    <p className='flex items-center'>
+                  <div className="mt-3 space-y-0 text-black-600">
+                    <h6>
+                        <span className='mr-2'>✅</span>{formatAmount(booking.agreed_amount)}
+                    </h6>
+                    <p className='flex items-center text-sm'>
                       <User width={16} className='text-gray-700 mr-2' /> {booking.name}
                     </p>
-                    <p className='flex items-center'>
+                    <p className='flex items-center text-sm'>
                       <Users width={16} className='text-gray-700 mr-2' /> {booking.guests} pax
                     </p>
 
-                    <p className='flex items-center'>
+                    <p className='flex items-center text-sm'>
                       <Phone width={16} className='text-gray-700 mr-2' /> {booking.contact}
                     </p>
 
                     {booking.notes && (
-                      <p className='flex items-center'>
+                      <p className='flex items-center text-sm'>
                         <NotepadText width={16} className='text-gray-700 mr-2' /> {booking.notes}
                       </p>
                     )}

@@ -6,6 +6,7 @@ import { format, isSameDay } from 'date-fns'
 import { useApp } from '@/context/AppContext'
 import Loader from '@/components/Loader'
 import { Flag, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
+import { parseAmount, formatAmount } from '@/utils/amount'
 
 export default function DashboardBookings() {
     const {
@@ -22,6 +23,19 @@ export default function DashboardBookings() {
     const [errorMessage, setErrorMessage] = useState('')
     const [loadingBookings, setLoadingBookings] = useState(false)
     const [confirmAction, setConfirmAction] = useState(null)
+    const [agreedAmount, setAgreedAmount] = useState('')
+
+    const updateData = {
+        status: confirmAction?.status,
+    }
+
+    const handleConfirm = (booking) => {
+        setAgreedAmount(booking.proposed_amount || '')
+        setConfirmAction({
+            booking,
+            status: 'confirmed',
+        })
+    }
 
     const updateBookingStatus = async () => {
         if (!confirmAction) return
@@ -29,6 +43,10 @@ export default function DashboardBookings() {
         setUpdateBookingProgress(true)
 
         if (confirmAction.status === "confirmed") {
+            updateData.agreed_amount = parseAmount(
+                agreedAmount || confirmAction.booking.proposed_amount || 0
+            )
+
             const newStart = new Date(confirmAction?.booking?.start_datetime)
             const newEnd = new Date(confirmAction?.booking?.end_datetime)
 
@@ -55,7 +73,7 @@ export default function DashboardBookings() {
             }
         }
 
-        await supabase.from('bookings').update({ status: confirmAction.status }).eq('id', confirmAction.booking.id)
+        await supabase.from('bookings').update(updateData).eq('id', confirmAction.booking.id)
         setConfirmAction(null)
         await refreshBookings()
         setUpdateBookingProgress(false)
@@ -80,6 +98,19 @@ export default function DashboardBookings() {
                             booking for{' '}
                             <strong>{confirmAction.booking.name}</strong>.
                         </p>
+
+                        {confirmAction?.status === 'confirmed' && (
+                            <>
+                            <p>Enter the agreed amount</p>
+                            <input
+                                type="number"
+                                value={agreedAmount}
+                                onChange={(e) => setAgreedAmount(e.target.value)}
+                                placeholder="Final agreed amount"
+                                className="w-full border p-3 rounded mt-2 mb-4"
+                            />
+                            </>
+                        )}
 
                         <div className="flex gap-2 justify-end">
                             <button
@@ -129,30 +160,34 @@ export default function DashboardBookings() {
                             className="border-1 border-[#ffe8c8] bg-[#ffee7f1f] rounded-xl p-4"
                         >
                             <div className="items-center justify-between">
-                                <h6 className='flex items-center'>
+                                <h6 className='flex items-center font-bold'>
                                     <MapPin width={16} className='text-gray-700 mr-2' /> {`${format(new Date(booking.start_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
                                 </h6>
-                                <h6 className='flex items-center'>
+                                <h6 className='flex items-center font-bold'>
                                     <Flag width={16} className='text-gray-700 mr-2' /> {`${format(new Date(booking.end_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
                                 </h6>
                             </div>
 
                             <div className='grid grid-cols-2'>
 
-                                <div className="mt-3 space-y-0 text-sm text-black-600">
-                                    <p className='flex items-center'>
-                                        <User width={16} className='text-gray-700 mr-2' /> {booking.name}
-                                    </p>
-                                    <p className='flex items-center'>
+                                <div className="mt-3 space-y-0 text-black-600">
+                                    <h6 className='flex items-center font-bold'>
+                                        💰 {formatAmount(booking.proposed_amount)}
+                                    </h6>
+                                    <p className='flex items-center text-sm font-bold'>
                                         <Users width={16} className='text-gray-700 mr-2' /> {booking.guests} pax
                                     </p>
 
-                                    <p className='flex items-center'>
+                                    <p className='flex items-center text-sm'>
+                                        <User width={16} className='text-gray-700 mr-2' /> {booking.name}
+                                    </p>
+
+                                    <p className='flex items-center text-sm'>
                                         <Phone width={16} className='text-gray-700 mr-2' /> {booking.contact}
                                     </p>
 
                                     {booking.notes && (
-                                        <p className='flex items-center'>
+                                        <p className='flex items-center text-sm'>
                                             <NotepadText width={16} className='text-gray-700 mr-2' /> {booking.notes}
                                         </p>
                                     )}
@@ -164,11 +199,7 @@ export default function DashboardBookings() {
                                     ) : (
                                         <div className='grid grid-flow-col grid-rows-2 gap-4"'>
                                             <button
-                                                onClick={() =>
-                                                    setConfirmAction({
-                                                        booking,
-                                                        status: 'confirmed',
-                                                    })
+                                                onClick={() => handleConfirm(booking)
                                                 }
                                                 className="cursor-pointer bg-[#29b55a] text-white px-3 py-1 rounded mb-1"
                                             >

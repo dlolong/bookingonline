@@ -5,6 +5,24 @@ import { supabase } from '@/lib/supabaseClient'
 import { useApp } from '@/context/AppContext'
 import { format } from 'date-fns'
 import { X } from 'lucide-react'
+import { formatAmountInput, parseAmount, formatAmount } from '@/utils/amount'
+
+function normalizeMobile(value) {
+    if (value.startsWith('09')) {
+        return '+63' + value.slice(1)
+    }
+    if (value.startsWith('639')) {
+        return '+' + value
+    }
+    return value
+}
+
+function isValidMobileNumber(value) {
+        const cleaned = value.replace(/\s+/g, '')
+
+        const regex = /^(09|\+639|639)\d{9}$/
+        return regex.test(cleaned)
+    }
 
 export default function AddBookingModal({
     open,
@@ -12,7 +30,7 @@ export default function AddBookingModal({
     onSuccess,
     bookingModalData = null
 }) {
-    const { selectedResort, refreshBookings } = useApp()
+    const { selectedResort, refreshBookings, showToast } = useApp()
     const [addBookingProgress, setAddBookingProgress] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
 
@@ -24,6 +42,7 @@ export default function AddBookingModal({
         end_date: '',
         end_time: '17:00',
         guests: '',
+        agreed_amount: '',
         notes: '',
     }
 
@@ -66,8 +85,22 @@ export default function AddBookingModal({
         const newStart = new Date(`${form.start_date}T${form.start_time}`)
         const newEnd = new Date(`${form.end_date}T${form.end_time}`)
 
+          if (!isValidMobileNumber(form.contact)) {
+            showToast({
+                type: 'error',
+                message:
+                    'Please enter a valid mobile number (e.g. 09171234567 or +639171234567)',
+            })
+            setAddBookingProgress(false)
+            return
+        }
+
         if (newEnd <= newStart) {
-            setErrorMessage('Check-out must be later than check-in.')
+             showToast({
+                type: 'error',
+                message:
+                   'Check-out must be later than check-in.',
+            })
             setAddBookingProgress(false)
             return
         }
@@ -80,7 +113,11 @@ export default function AddBookingModal({
 
         if (bookingError) {
             console.error(bookingError)
-            setErrorMessage('Failed to check existing bookings.')
+              showToast({
+                type: 'error',
+                message:
+                 'Failed to check existing bookings.',
+            })
             setAddBookingProgress(false)
             return
         }
@@ -98,7 +135,12 @@ export default function AddBookingModal({
         })
 
         if (hasConflict) {
-            setErrorMessage('Selected date and time are already booked.')
+             showToast({
+                type: 'error',
+                message:
+                'Selected date and time are already booked.',
+            })
+            setForm({ ...form, start_date: '', end_date: '' })
             setAddBookingProgress(false)
             return
         }
@@ -107,10 +149,12 @@ export default function AddBookingModal({
             {
                 resort_id: selectedResort.id,
                 name: form.name,
-                contact: form.contact,
+                contact: normalizeMobile(form.contact),
                 start_datetime: new Date(`${form.start_date}T${form.start_time}`),
                 end_datetime: new Date(`${form.end_date}T${form.end_time}`),
                 guests: Number(form.guests || 0),
+               agreed_amount: parseAmount(form.agreed_amount),
+                proposed_amount: parseAmount(form.agreed_amount),
                 notes: form.notes,
                 status: 'confirmed',
             },
@@ -120,7 +164,12 @@ export default function AddBookingModal({
 
         if (error) {
             console.error(error)
-            setErrorMessage('Failed to save booking.')
+              showToast({
+                type: 'error',
+                message:
+                'Failed to save booking.',
+            })
+            
             return
         }
 
@@ -213,14 +262,18 @@ export default function AddBookingModal({
                         onChange={handleChange}
                     />
 
-                    <input
-                        type="text"
-                        name="contact"
-                        value={form.contact}
-                        placeholder="Contact Number"
-                        className="w-full border p-2 rounded"
-                        onChange={handleChange}
-                    />
+                     <input
+                    name="contact"
+                    value={form.contact}
+                    onChange={(e) => {
+                        // allow only numbers and +
+                        const value = e.target.value.replace(/[^\d+]/g, '')
+                        handleChange({ target: { name: 'contact', value } })
+                    }}
+                    placeholder="09XXXXXXXXX"
+                    className="w-full border px-3 py-2.5 sm:p-3 rounded"
+                    maxLength={13}
+                />
 
 
                     <input
@@ -231,6 +284,22 @@ export default function AddBookingModal({
                         className="w-full border p-2 rounded"
                         onChange={handleChange}
                     />
+
+                   <input
+                        type="text"
+                        name="agreed_amount"
+                        value={formatAmountInput(form.agreed_amount)}
+                        onChange={(e) => {
+                            const raw = e.target.value.replace(/[^\d]/g, '')
+
+                            setForm((prev) => ({
+                            ...prev,
+                            agreed_amount: raw,
+                            }))
+                        }}
+                        placeholder="Agreed Amount"
+                        className="w-full border p-2 rounded"
+                        />
 
                     <textarea
                         name="notes"
@@ -247,6 +316,7 @@ export default function AddBookingModal({
                             || !form.start_date
                             || !form.end_date
                             || !form.guests
+                            || !form.agreed_amount
                             || addBookingProgress
                             || !selectedResort
                         }
