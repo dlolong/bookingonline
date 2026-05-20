@@ -5,6 +5,7 @@ import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
 import { format, isBefore, isSameDay } from 'date-fns'
 import { Flag, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
+import { formatAmount } from '@/utils/amount'
 
 
 const bookingColors = [
@@ -225,12 +226,15 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
 
                     <div className="mt-3 space-y-0 text-sm text-black-600">
                       <p className='flex items-center'>
-                        <User width={16} className='text-gray-700 mr-2' /> {booking.name}
+                        <span className='mr-2'>✅</span>{formatAmount(booking.agreed_amount)}
                       </p>
                       <p className='flex items-center'>
                         <Users width={16} className='text-gray-700 mr-2' /> {booking.guests} pax
                       </p>
-
+                     
+                      <p className='flex items-center'>
+                        <User width={16} className='text-gray-700 mr-2' /> {booking.name}
+                      </p>
                       <p className='flex items-center'>
                         <Phone width={16} className='text-gray-700 mr-2' /> {booking.contact}
                       </p>
