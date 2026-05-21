@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
-import { format, isSameDay, isBefore } from 'date-fns'
+import { format, isSameDay, isValid } from 'date-fns'
 import { supabase } from '@/lib/supabaseClient'
 import { useApp } from '@/context/AppContext'
 import { formatAmountInput, parseAmount, formatAmount } from '@/utils/amount'
@@ -59,7 +59,7 @@ export default function PublicBookingForm({ resort, bookings }) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-     const resetForm = () => {
+    const resetForm = () => {
         setFormStartDate(defaultForm.start_date)
         setFormStartTime(defaultForm.start_time)
         setFormEndDate(defaultForm.end_date)
@@ -116,6 +116,47 @@ export default function PublicBookingForm({ resort, bookings }) {
 
         return 'full'
     }
+
+    function checkAvailability(startValue, endValue, bookings) {
+        if (!startValue || !endValue) return null
+
+        const newStart = new Date(startValue)
+        const newEnd = new Date(endValue)
+
+        if (newEnd <= newStart) {
+            return {
+                available: false,
+                message: 'End date/time must be later than start date/time.',
+            }
+        }
+
+        const hasConflict = bookings.some((booking) => {
+            const existingStart = new Date(booking.start_datetime)
+            const existingEnd = new Date(booking.end_datetime)
+
+            return newStart < existingEnd && newEnd > existingStart
+        })
+
+        if (hasConflict) {
+            return {
+                available: false,
+                message: 'This schedule is currently unavailable. Please choose another date or adjust your time.',
+            }
+        }
+
+        return {
+            available: true,
+            message: 'Available',
+        }
+    }
+    const startDate =  new Date(`${formStartDate}T${formStartTime}`)
+    const endDate = new Date(`${formEndDate}T${formEndTime}`)
+
+    const availability = isValid(startDate) && isValid(endDate) && checkAvailability(
+        startDate,
+        endDate,
+        bookings
+    )
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -306,8 +347,8 @@ export default function PublicBookingForm({ resort, bookings }) {
     )
 
     const rightBox = (
-        <div className="bg-white rounded-2xl shadow p-4 sm:p-6 w-full overflow-hidden" >
-            <h2 className="text-xl font-bold mb-4 sr-only md:not-sr-only">
+        <div className="bg-white rounded-2xl shadow p-4 sm:p-6 w-full max-w-md overflow-hidden " >
+            <h2 className="text-left text-xl font-bold mb-4">
                 Reservation Form
             </h2>
 
@@ -331,8 +372,6 @@ export default function PublicBookingForm({ resort, bookings }) {
                         onChange={(e) => setFormStartTime(e.target.value)}
                     />
                 </div>
-
-
                 <div className="flex grid-cols-3 gap-2">
                     <p className='w-88'>Check Out</p>
                     <input
@@ -352,6 +391,19 @@ export default function PublicBookingForm({ resort, bookings }) {
                         onChange={(e) => setFormEndTime(e.target.value)}
                     />
                 </div>
+                 {availability && (
+                <div
+                    className={`p-3 rounded text-sm ${
+                    availability.available
+                        ? 'bg-green-50 text-green-700'
+                        : 'bg-red-50 text-red-700'
+                    }`}
+                >
+                    {availability.available
+                    ? 'Good news! This date and time is available.'
+                    : availability.message}
+                </div>
+                )}
 
                 <input
                     name="name"
@@ -416,6 +468,7 @@ export default function PublicBookingForm({ resort, bookings }) {
                         || !formStartDate
                         || !formEndDate
                         || !formGuests
+                        || !availability.available
                     }
                     className="cursor-default enabled:cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-400"
                 >
@@ -531,9 +584,12 @@ export default function PublicBookingForm({ resort, bookings }) {
                     Select available dates and send your reservation request
                 </p>
             </div>
+            <div className='flex items-center justify-center'>
+                {rightBox}
+            </div>
 
             {/* Mobile tabs only */}
-            <div className="flex gap-2 border-b border-[#cacecf] mb-6 md:hidden">
+            {/* <div className="flex gap-2 border-b border-[#cacecf] mb-6 md:hidden">
                 <button
                     onClick={() => setActiveTab('availability')}
                     className={`cursor-pointer  px-4 py-2 ${activeTab === 'availability'
@@ -552,21 +608,21 @@ export default function PublicBookingForm({ resort, bookings }) {
                 >
                     Reservation Form
                 </button>
-            </div>
+            </div> */}
 
             {/* Mobile view */}
-            <div className="md:hidden pb-32">
+            {/* <div className="md:hidden pb-32">
                 {activeTab === 'availability' && leftBox}
                 {activeTab === 'reservation' && rightBox}
-            </div>
+            </div> */}
 
             {/* Desktop / tablet view: side by side */}
-            <div className="hidden pb-32 md:grid md:grid-cols-2 gap-6 items-start">
+            {/* <div className="hidden pb-32 md:grid md:grid-cols-2 gap-6 items-start">
                 {leftBox}
                 <div className='md:pl-4'>
                     {rightBox}
                 </div>
-            </div>
+            </div> */}
         </>
     )
 }

@@ -109,7 +109,7 @@ export default function Navbar() {
             {/* Booking link */}
             {selectedResort?.slug && !refreshing && (
               <p className="text-xs text-gray-500">
-                {`${window.location.origin}/public-booking/${selectedResort.slug}`}
+                {`/public-booking/${selectedResort.slug}`}
               </p>
             )}
           </div>

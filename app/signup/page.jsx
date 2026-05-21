@@ -14,6 +14,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [signupSuccess, setSignupSuccess] = useState(false)
 
   const handleSignup = async (e) => {
     e.preventDefault()
@@ -52,18 +53,62 @@ export default function SignupPage() {
       type: "success",
       message: 'Signup successful. Please check your email to confirm.'
     })
-    router.push('/onboarding')
+    setSignupSuccess(true)
+    // router.push('/onboarding')
   }
+
+  if (signupSuccess) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow p-6 text-center">
+        <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-4 text-3xl">
+          ✓
+        </div>
+
+        <h1 className="text-2xl font-bold mb-2">
+          Check Your Email
+        </h1>
+
+        <p className="text-gray-600 mb-4">
+          We sent a confirmation link to:
+        </p>
+
+        <p className="font-semibold mb-6">
+          {email}
+        </p>
+
+        <div className="bg-gray-50 rounded-xl p-4 text-left text-sm text-gray-600 mb-6">
+          <p className="font-semibold mb-2">
+            Next steps:
+          </p>
+
+          <ol className="list-decimal pl-5 space-y-1">
+            <li>Open your email inbox.</li>
+            <li>Click the confirmation link.</li>
+            <li>After confirming, you’ll be redirected to setup your resort.</li>
+          </ol>
+        </div>
+
+        <button
+          onClick={() => router.push('/login')}
+          className="w-full bg-green-600 text-white p-3 rounded"
+        >
+          Go to Login
+        </button>
+      </div>
+    </div>
+  )
+}
 
   return (
      <div className="flex items-center justify-center p-6 bg-gradient-to-b from-blue-50 to-white">
        <div className='bg-white w-full max-w-md rounded-2xl shadow p-6'>
-      <h1 className="text-xl font-bold mb-4">Create Account</h1>
+      <h1 className="text-xl font-bold mb-4 text-blue-500">Create an Account</h1>
 
       <form onSubmit={handleSignup} className="space-y-3">
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Enter you email address"
           className="w-full border-1 border-gray-700 p-2 rounded-xl"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -72,7 +117,7 @@ export default function SignupPage() {
        <div className="relative">
           <input
             type={showPassword ? 'text' : 'password'}
-            placeholder="Password"
+            placeholder="Create Password"
             className="w-full border-1 border-gray-700 p-2 pr-10 rounded-xl"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
