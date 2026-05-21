@@ -8,10 +8,6 @@ import { supabase } from '@/lib/supabaseClient'
 import { useApp } from '@/context/AppContext'
 import { formatAmountInput, parseAmount, formatAmount } from '@/utils/amount'
 
-function toDateTimeLocal(date, time = '14:00') {
-    if (!date) return ''
-    return `${format(date, 'yyyy-MM-dd')}T${time}`
-}
 
 function normalizeMobile(value) {
     if (value.startsWith('09')) {
@@ -33,7 +29,6 @@ function isValidMobileNumber(value) {
 export default function PublicBookingForm({ resort, bookings }) {
     const { showToast } = useApp()
 
-    const [range, setRange] = useState()
     const [loading, setLoading] = useState(false)
     const [selectedDate, setSelectedDate] = useState(null)
     const [activeTab, setActiveTab] = useState('availability')
@@ -50,39 +45,38 @@ export default function PublicBookingForm({ resort, bookings }) {
         guests: '',
         notes: '',
     }
-    const [form, setForm] = useState(defaultForm)
 
+    const [formStartDate, setFormStartDate] = useState(defaultForm.start_date)
+    const [formStartTime, setFormStartTime] = useState(defaultForm.start_time)
+    const [formEndDate, setFormEndDate] = useState(defaultForm.end_date)
+    const [formEndTime, setFormEndTime] = useState(defaultForm.end_time)
+    const [formName, setFormName] = useState(defaultForm.name)
+    const [formContact, setFormContact] = useState(defaultForm.contact)
+    const [formGuests, setFormGuests] = useState(defaultForm.guests)
+    const [formProposedAmount, setFormProposedAmount] = useState(defaultForm.agreed_amount)
+    const [formNotes, setFormNotes] = useState(defaultForm.notes)
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const handleDayClick = (day) => {
-        setSelectedDate(day)
-        setActiveTab('reservation')
-        setForm({
-            ...form,
-            start_date: format(new Date(day), 'yyyy-MM-dd')
-        })
-
-        // const bookingsForDay = bookings.filter((booking) => {
-        //     const start = new Date(booking.start_datetime)
-        //     const end = new Date(booking.end_datetime)
-
-        //     start.setHours(0, 0, 0, 0)
-        //     end.setHours(23, 59, 59, 999)
-
-        //     return day >= start && day <= end
-        // })
-
-        // if (bookingsForDay.length > 0) {
-        //     setSelectedBookings(bookingsForDay)
-        //     setOpenModal(true)
-        // } else {
-        //     onAddBooking(day)
-        // }
+     const resetForm = () => {
+        setFormStartDate(defaultForm.start_date)
+        setFormStartTime(defaultForm.start_time)
+        setFormEndDate(defaultForm.end_date)
+        setFormEndTime(defaultForm.end_time)
+        setFormName(defaultForm.name)
+        setFormContact(defaultForm.contact)
+        setFormGuests(defaultForm.guests)
+        setFormProposedAmount(defaultForm.agreed_amount)
+        setFormNotes(defaultForm.notes)
     }
 
 
+    const handleDayClick = (day) => {
+        setSelectedDate(day)
+        setActiveTab('reservation')
+        setFormStartDate(format(new Date(day), 'yyyy-MM-dd'))
+    }
 
     function getBookingsForDay(day, bookings) {
         return bookings.filter((booking) => {
@@ -123,21 +117,14 @@ export default function PublicBookingForm({ resort, bookings }) {
         return 'full'
     }
 
-
-    const handleChange = (e) => {
-        setForm({
-            ...form,
-            [e.target.name]: e.target.value,
-        })
-    }
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
 
-        const newStart = new Date(`${form.start_date}T${form.start_time}`)
-        const newEnd = new Date(`${form.end_date}T${form.end_time}`)
+        const newStart = new Date(`${formStartDate}T${formStartTime}`)
+        const newEnd = new Date(`${formEndDate}T${formEndTime}`)
 
-        if (!isValidMobileNumber(form.contact)) {
+        if (!isValidMobileNumber(formContact)) {
             showToast({
                 type: 'error',
                 message:
@@ -168,7 +155,8 @@ export default function PublicBookingForm({ resort, bookings }) {
                 type: 'error',
                 message: 'Selected date/time is not available.',
             })
-            setForm({ ...form, start_date: '', end_date: '' })
+            setFormStartDate("")
+            setFormEndDate("")
             setLoading(false)
             return
         }
@@ -176,14 +164,14 @@ export default function PublicBookingForm({ resort, bookings }) {
         const { error } = await supabase.from('bookings').insert([
             {
                 resort_id: resort.id,
-                name: form.name,
-                contact: normalizeMobile(form.contact),
-                start_datetime: new Date(`${form.start_date}T${form.start_time}`),
-                end_datetime: new Date(`${form.end_date}T${form.end_time}`),
-                guests: Number(form.guests || 0),
-                proposed_amount: parseAmount(form.proposed_amount),
+                name: formName,
+                contact: normalizeMobile(formContact),
+                start_datetime: new Date(`${formStartDate}T${formStartTime}`),
+                end_datetime: new Date(`${formEndDate}T${formEndTime}`),
+                guests: Number(formGuests || 0),
+                proposed_amount: parseAmount(formProposedAmount),
                 agreed_amount: 0,
-                notes: form.notes,
+                notes: formNotes,
                 status: 'pending',
             },
         ])
@@ -205,17 +193,16 @@ export default function PublicBookingForm({ resort, bookings }) {
 
         setSubmittedBooking({
             resortName: resort.name,
-            name: form.name,
-            contact: form.contact,
-            start_datetime: new Date(`${form.start_date}T${form.start_time}`),
-            end_datetime: new Date(`${form.end_date}T${form.end_time}`),
-            proposed_amount: parseAmount(form.proposed_amount),
-            guests: form.guests,
-            notes: form.notes,
+            name: formName,
+            contact: formContact,
+            start_datetime: new Date(`${formStartDate}T${formStartTime}`),
+            end_datetime: new Date(`${formEndDate}T${formEndTime}`),
+            proposed_amount: parseAmount(formProposedAmount),
+            guests: formGuests,
+            notes: formNotes,
         })
 
-        setForm(defaultForm)
-        setRange(undefined)
+        resetForm()
     }
 
     const leftBox = (
@@ -331,17 +318,17 @@ export default function PublicBookingForm({ resort, bookings }) {
                         min={new Date().toISOString().split('T')[0]}
                         type="date"
                         name="start_date"
-                        value={form?.start_date}
+                        value={formStartDate}
                         className="flex-1 border p-2 rounded"
-                        onChange={handleChange}
+                        onChange={(e) => setFormStartDate(e.target.value)}
                     />
 
                     <input
                         type="time"
                         name="start_time"
-                        value={form?.start_time}
+                        value={formStartTime}
                         className="flex-1 border p-2 rounded"
-                        onChange={handleChange}
+                        onChange={(e) => setFormStartTime(e.target.value)}
                     />
                 </div>
 
@@ -349,38 +336,38 @@ export default function PublicBookingForm({ resort, bookings }) {
                 <div className="flex grid-cols-3 gap-2">
                     <p className='w-88'>Check Out</p>
                     <input
-                        min={(form.start_date ? new Date(form.start_date) : new Date()).toISOString().split('T')[0]}
+                        min={(formStartDate ? new Date(formStartDate) : new Date()).toISOString().split('T')[0]}
                         type="date"
                         name="end_date"
-                        value={form?.end_date}
+                        value={formEndDate}
                         className="flex-1 border p-2 rounded"
-                        onChange={handleChange}
+                        onChange={(e) => setFormEndDate(e.target.value)}
                     />
 
                     <input
                         type="time"
                         name="end_time"
-                        value={form?.end_time}
+                        value={formEndTime}
                         className="flex-1 border p-2 rounded"
-                        onChange={handleChange}
+                        onChange={(e) => setFormEndTime(e.target.value)}
                     />
                 </div>
 
                 <input
                     name="name"
-                    value={form?.name}
+                    value={formName}
                     placeholder="Guest Name"
                     className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
-                    onChange={handleChange}
+                    onChange={(e) => setFormName(e.target.value)}
                 />
 
                 <input
                     name="contact"
-                    value={form.contact}
+                    value={formContact}
                     onChange={(e) => {
                         // allow only numbers and +
                         const value = e.target.value.replace(/[^\d+]/g, '')
-                        handleChange({ target: { name: 'contact', value } })
+                        setFormContact(value)
                     }}
                     placeholder="09XXXXXXXXX"
                     className="w-full border px-3 py-2.5 sm:p-3 rounded"
@@ -391,23 +378,19 @@ export default function PublicBookingForm({ resort, bookings }) {
                 <input
                     type="number"
                     name="guests"
-                    value={form?.guests}
+                    value={formGuests}
                     placeholder="Number of guests"
                     className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
-                    onChange={handleChange}
+                    onChange={(e) => setFormGuests(e.target.value)}
                 />
 
                 <input
                     type="text"
                     name="proposed_amount"
-                    value={formatAmountInput(form.proposed_amount)}
+                    value={formatAmountInput(formProposedAmount)}
                     onChange={(e) => {
                         const raw = e.target.value.replace(/[^\d]/g, '')
-
-                        setForm((prev) => ({
-                            ...prev,
-                            proposed_amount: raw,
-                        }))
+                        setFormProposedAmount(raw)
                     }}
                     placeholder="Your Proposed Price"
                     className="w-full border p-3 rounded"
@@ -419,20 +402,20 @@ export default function PublicBookingForm({ resort, bookings }) {
 
                 <textarea
                     name="notes"
-                    value={form?.notes}
+                    value={formNotes}
                     placeholder="Notes"
                     className="w-full border px-3 py-2.5 sm:p-3 rounded text-sm sm:text-base"
-                    onChange={handleChange}
+                    onChange={(e) => setFormNotes(e.target.value)}
                 />
 
                 <button
                     disabled={
                         loading
-                        || form.name === ''
-                        || form.contact === ''
-                        || !form.start_date
-                        || !form.end_date
-                        || !form.guests
+                        || formName === ''
+                        || formContact === ''
+                        || !formStartDate
+                        || !formEndDate
+                        || !formGuests
                     }
                     className="cursor-default enabled:cursor-pointer w-full bg-[#29b55a] text-white p-2 rounded disabled:bg-gray-400"
                 >
@@ -527,15 +510,7 @@ export default function PublicBookingForm({ resort, bookings }) {
                 <button
                     onClick={() => {
                         setSubmittedBooking(null)
-                        setRange(undefined)
-                        setForm({
-                            name: '',
-                            contact: '',
-                            start_datetime: '',
-                            end_datetime: '',
-                            guests: '',
-                            notes: '',
-                        })
+                        resetForm()
                     }}
                     className="mt-6 bg-green-600 text-white px-6 py-3 rounded-xl"
                 >

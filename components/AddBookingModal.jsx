@@ -34,7 +34,7 @@ export default function AddBookingModal({
     const [addBookingProgress, setAddBookingProgress] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
 
-    const defaultForm = {
+       const defaultForm = {
         name: '',
         contact: '',
         start_date: '',
@@ -46,29 +46,34 @@ export default function AddBookingModal({
         notes: '',
     }
 
+    const [formStartDate, setFormStartDate] = useState(defaultForm.start_date)
+    const [formStartTime, setFormStartTime] = useState(defaultForm.start_time)
+    const [formEndDate, setFormEndDate] = useState(defaultForm.end_date)
+    const [formEndTime, setFormEndTime] = useState(defaultForm.end_time)
+    const [formName, setFormName] = useState(defaultForm.name)
+    const [formContact, setFormContact] = useState(defaultForm.contact)
+    const [formGuests, setFormGuests] = useState(defaultForm.guests)
+    const [formAgreedAmount, setFormAgreedAmount] = useState(defaultForm.agreed_amount)
+    const [formNotes, setFormNotes] = useState(defaultForm.notes)
+
     const [form, setForm] = useState(defaultForm)
 
     useEffect(() => {
-        console.log(bookingModalData)
         if (bookingModalData) {
-            setForm({
-                ...form,
-                start_date: format(new Date(bookingModalData), 'yyyy-MM-dd')
-            })
+            setFormStartDate(format(new Date(bookingModalData), 'yyyy-MM-dd'))
         }
     }, [bookingModalData])
 
-
-
-    const handleChange = (e) => {
-        setForm({
-            ...form,
-            [e.target.name]: e.target.value,
-        })
-    }
-
     const resetForm = () => {
-        setForm(defaultForm)
+        setFormStartDate(defaultForm.start_date)
+        setFormStartTime(defaultForm.start_time)
+        setFormEndDate(defaultForm.end_date)
+        setFormEndTime(defaultForm.end_time)
+        setFormName(defaultForm.name)
+        setFormContact(defaultForm.contact)
+        setFormGuests(defaultForm.guests)
+        setFormAgreedAmount(defaultForm.agreed_amount)
+        setFormNotes(defaultForm.notes)
     }
 
     const handleSubmit = async (e) => {
@@ -82,10 +87,10 @@ export default function AddBookingModal({
         setAddBookingProgress(true)
         setErrorMessage('')
 
-        const newStart = new Date(`${form.start_date}T${form.start_time}`)
-        const newEnd = new Date(`${form.end_date}T${form.end_time}`)
+        const newStart = new Date(`${formStartDate}T${formStartTime}`)
+        const newEnd = new Date(`${formEndDate}T${formEndTime}`)
 
-          if (!isValidMobileNumber(form.contact)) {
+          if (!isValidMobileNumber(formContact)) {
             showToast({
                 type: 'error',
                 message:
@@ -148,14 +153,14 @@ export default function AddBookingModal({
         const { error } = await supabase.from('bookings').insert([
             {
                 resort_id: selectedResort.id,
-                name: form.name,
-                contact: normalizeMobile(form.contact),
-                start_datetime: new Date(`${form.start_date}T${form.start_time}`),
-                end_datetime: new Date(`${form.end_date}T${form.end_time}`),
-                guests: Number(form.guests || 0),
-               agreed_amount: parseAmount(form.agreed_amount),
-                proposed_amount: parseAmount(form.agreed_amount),
-                notes: form.notes,
+                name: formName,
+                contact: normalizeMobile(formContact),
+                start_datetime: new Date(`${formStartDate}T${formStartTime}`),
+                end_datetime: new Date(`${formEndDate}T${formEndTime}`),
+                guests: Number(formGuests || 0),
+                agreed_amount: parseAmount(formAgreedAmount),
+                proposed_amount: parseAmount(formAgreedAmount),
+                notes: formNotes,
                 status: 'confirmed',
             },
         ])
@@ -218,17 +223,17 @@ export default function AddBookingModal({
                             min={new Date().toISOString().split('T')[0]}
                             type="date"
                             name="start_date"
-                            value={form.start_date}
+                            value={formStartDate}
                             className="flex-1 border p-2 rounded"
-                            onChange={handleChange}
+                            onChange={(e) => setFormStartDate(e.target.value)}
                         />
 
                         <input
                             type="time"
                             name="start_time"
-                            value={form.start_time}
+                            value={formStartTime}
                             className="flex-1 border p-2 rounded"
-                            onChange={handleChange}
+                            onChange={(e) => setFormStartTime(e.target.value)}
                         />
                     </div>
 
@@ -236,39 +241,39 @@ export default function AddBookingModal({
                     <div className="flex grid-cols-3 gap-2">
                         <p className='w-88'>Check Out</p>
                         <input
-                            min={(form.start_date ? new Date(form.start_date) : new Date()).toISOString().split('T')[0]}
+                            min={(formStartDate ? new Date(formStartDate) : new Date()).toISOString().split('T')[0]}
                             type="date"
                             name="end_date"
-                            value={form.end_date}
+                            value={formEndDate}
                             className="flex-1 border p-2 rounded"
-                            onChange={handleChange}
+                            onChange={(e) => setFormEndDate(e.target.value)}
                         />
 
                         <input
                             type="time"
                             name="end_time"
-                            value={form.end_time}
+                            value={formEndTime}
                             className="flex-1 border p-2 rounded"
-                            onChange={handleChange}
+                            onChange={(e) => setFormEndTime(e.target.value)}
                         />
                     </div>
 
                     <input
                         type="text"
                         name="name"
-                        value={form.name}
+                        value={formName}
                         placeholder="Guest Name"
                         className="w-full border p-2 rounded"
-                        onChange={handleChange}
+                        onChange={(e) => setFormName(e.target.value)}
                     />
 
                      <input
                     name="contact"
-                    value={form.contact}
+                    value={formContact}
                     onChange={(e) => {
                         // allow only numbers and +
                         const value = e.target.value.replace(/[^\d+]/g, '')
-                        handleChange({ target: { name: 'contact', value } })
+                        setFormContact(value)
                     }}
                     placeholder="09XXXXXXXXX"
                     className="w-full border px-3 py-2.5 sm:p-3 rounded"
@@ -279,23 +284,19 @@ export default function AddBookingModal({
                     <input
                         type="number"
                         name="guests"
-                        value={form.guests}
+                        value={formGuests}
                         placeholder="Number of guests"
                         className="w-full border p-2 rounded"
-                        onChange={handleChange}
+                        onChange={(e) => setFormGuests(e.target.value)}
                     />
 
                    <input
                         type="text"
                         name="agreed_amount"
-                        value={formatAmountInput(form.agreed_amount)}
+                        value={formatAmountInput(formAgreedAmount)}
                         onChange={(e) => {
                             const raw = e.target.value.replace(/[^\d]/g, '')
-
-                            setForm((prev) => ({
-                            ...prev,
-                            agreed_amount: raw,
-                            }))
+                            setFormAgreedAmount(raw)
                         }}
                         placeholder="Agreed Amount"
                         className="w-full border p-2 rounded"
@@ -303,20 +304,20 @@ export default function AddBookingModal({
 
                     <textarea
                         name="notes"
-                        value={form.notes}
+                        value={formNotes}
                         placeholder="Notes"
                         className="w-full border p-2 rounded"
-                        onChange={handleChange}
+                        onChange={(e) => setFormNotes(e.target.value)}
                     />
 
                     <button
                         disabled={
-                            form.name === ''
-                            || form.contact === ''
-                            || !form.start_date
-                            || !form.end_date
-                            || !form.guests
-                            || !form.agreed_amount
+                            formName === ''
+                            || formContact === ''
+                            || !formStartDate
+                            || !formEndDate
+                            || !formGuests
+                            || !formAgreedAmount
                             || addBookingProgress
                             || !selectedResort
                         }
