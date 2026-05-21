@@ -6,7 +6,7 @@ import { useApp } from '@/context/AppContext'
 import CalendarView from '@/components/CalendarView'
 import Loader from '@/components/Loader'
 import { format } from 'date-fns'
-import { CalendarDays, Flag, List, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
+import { CalendarDays, CircleMinus, Flag, List, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
 import { formatAmount } from '@/utils/amount'
 
 function formatDateTime(datetime) {
@@ -124,10 +124,10 @@ export default function DashboardCalendar({ onAddBooking }) {
                 className="border-1 border-[#b7ddbb] bg-[#f5fff6] rounded-xl p-4"
               >
                 <div className="items-center justify-between">
-                  <h6 className='flex items-center'>
+                  <h6 className='flex items-center text-sm'>
                     <MapPin width={16} className='text-gray-700 mr-2' /> {`${format(new Date(booking.start_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
                   </h6>
-                  <h6 className='flex items-center'>
+                  <h6 className='flex items-center text-sm'>
                     <Flag width={16} className='text-gray-700 mr-2' /> {`${format(new Date(booking.end_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
                   </h6>
                 </div>
@@ -135,10 +135,16 @@ export default function DashboardCalendar({ onAddBooking }) {
                 <div className='grid grid-cols-2'>
 
                   <div className="mt-3 space-y-0 text-black-600">
-                    <h6>
-                        <span className='mr-2'>✅</span>{formatAmount(booking.agreed_amount)}
-                    </h6>
-                    <p className='flex items-center text-sm'>
+                    <p className='flex items-center text-sm font-bold'>
+                        <span className='mr-2'>✅</span> Amount: {formatAmount(booking.agreed_amount)}
+                      </p>
+                    <p className='flex items-center text-gray-500 text-sm'>
+                      <CircleMinus width={16} className='text-gray-700 mr-2' />Downpayment: {formatAmount(booking.downpayment)}
+                    </p>
+                      <p className='flex items-center text-sm'>
+                      <CircleMinus width={16} className='text-gray-700 mr-2 font-bold' />Balance: {formatAmount(booking.agreed_amount -  booking.downpayment)}
+                    </p>
+                    <p className='flex items-center text-sm mt-2'>
                       <User width={16} className='text-gray-700 mr-2' /> {booking.name}
                     </p>
                     <p className='flex items-center text-sm'>

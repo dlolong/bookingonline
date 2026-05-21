@@ -6,7 +6,7 @@ import { format, isSameDay } from 'date-fns'
 import { useApp } from '@/context/AppContext'
 import Loader from '@/components/Loader'
 import { Flag, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
-import { parseAmount, formatAmount } from '@/utils/amount'
+import { formatAmountInput, parseAmount, formatAmount } from '@/utils/amount'
 
 export default function DashboardBookings() {
     const {
@@ -24,6 +24,7 @@ export default function DashboardBookings() {
     const [loadingBookings, setLoadingBookings] = useState(false)
     const [confirmAction, setConfirmAction] = useState(null)
     const [agreedAmount, setAgreedAmount] = useState('')
+    const [downpayment, setDownpayment] = useState('')
 
     const updateData = {
         status: confirmAction?.status,
@@ -31,6 +32,7 @@ export default function DashboardBookings() {
 
     const handleConfirm = (booking) => {
         setAgreedAmount(booking.proposed_amount || '')
+        setDownpayment(booking.downpayment || '')
         setConfirmAction({
             booking,
             status: 'confirmed',
@@ -46,7 +48,9 @@ export default function DashboardBookings() {
             updateData.agreed_amount = parseAmount(
                 agreedAmount || confirmAction.booking.proposed_amount || 0
             )
-
+            updateData.downpayment = parseAmount(
+                downpayment || 0
+            )
             const newStart = new Date(confirmAction?.booking?.start_datetime)
             const newEnd = new Date(confirmAction?.booking?.end_datetime)
 
@@ -103,10 +107,22 @@ export default function DashboardBookings() {
                             <>
                             <p>Enter the agreed amount</p>
                             <input
-                                type="number"
-                                value={agreedAmount}
-                                onChange={(e) => setAgreedAmount(e.target.value)}
+                                value={formatAmountInput(agreedAmount)}
+                                onChange={(e) => {
+                                    const raw = e.target.value.replace(/[^\d]/g, '')
+                                    setAgreedAmount(raw)
+                                }}
                                 placeholder="Final agreed amount"
+                                className="w-full border p-3 rounded mt-2 mb-4"
+                            />
+                              <p>Enter the downpayment</p>
+                            <input
+                                value={formatAmountInput(downpayment)}
+                                onChange={(e) => {
+                                    const raw = e.target.value.replace(/[^\d]/g, '')
+                                    setDownpayment(raw)
+                                }}
+                                placeholder="Downpayment"
                                 className="w-full border p-3 rounded mt-2 mb-4"
                             />
                             </>
@@ -123,8 +139,11 @@ export default function DashboardBookings() {
 
                             <button
                                 onClick={updateBookingStatus}
-                                disabled={updateBookingProgress}
-                                className={`cursor-pointer px-4 py-2 rounded text-white ${confirmAction.status === 'confirmed'
+                                disabled={updateBookingProgress || !agreedAmount || !downpayment}
+                                className={`
+                                    disabled:bg-gray-400
+                                    disabled:cursor-default
+                                    cursor-pointer px-4 py-2 rounded text-white ${confirmAction.status === 'confirmed'
                                     ? 'bg-[#29b55a]'
                                     : 'bg-red-600'
                                     }`}

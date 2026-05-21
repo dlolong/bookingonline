@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
 import { format, isBefore, isSameDay } from 'date-fns'
-import { Flag, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
+import { CircleMinus, Flag, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
 import { formatAmount } from '@/utils/amount'
 
 
@@ -214,21 +214,26 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
                   className="border-1 border-[#b7ddbb] rounded-xl p-4"
                 >
                   <div className="items-center justify-between">
-                    <h6 className='flex items-center'>
+                    <h6 className='flex items-center text-sm'>
                       <MapPin width={16} className='text-gray-700 mr-2' /> {`${format(new Date(booking.start_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
                     </h6>
-                    <h6 className='flex items-center'>
+                    <h6 className='flex items-center text-sm'>
                       <Flag width={16} className='text-gray-700 mr-2' /> {`${format(new Date(booking.end_datetime), 'EEE, MMMM d, yyyy hh:mm a')}`}
                     </h6>
                   </div>
 
                   <div className=''>
-
                     <div className="mt-3 space-y-0 text-sm text-black-600">
-                      <p className='flex items-center'>
-                        <span className='mr-2'>✅</span>{formatAmount(booking.agreed_amount)}
+                      <p className='flex items-center text-sm font-bold'>
+                        <span className='mr-2'>✅</span> Amount: {formatAmount(booking.agreed_amount)}
                       </p>
-                      <p className='flex items-center'>
+                        <p className='flex items-center text-gray-500'>
+                          <CircleMinus width={16} className='text-gray-700 mr-2' />Downpayment: {formatAmount(booking.downpayment)}
+                        </p>
+                          <p className='flex items-center'>
+                          <CircleMinus width={16} className='text-gray-700 mr-2 font-bold' />Balance: {formatAmount(booking.agreed_amount - booking.downpayment)}
+                        </p>
+                      <p className='flex items-center mt-4'>
                         <Users width={16} className='text-gray-700 mr-2' /> {booking.guests} pax
                       </p>
                      
