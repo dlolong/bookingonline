@@ -66,7 +66,6 @@ export default function DashboardCalendar({ onAddBooking }) {
 
     setCancelBooking(null)
     setCancelReason('')
-    setOpenModal(false)
     await refreshBookings()
   }
 

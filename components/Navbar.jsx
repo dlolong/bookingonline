@@ -10,7 +10,7 @@ import Image from 'next/image'
 
 export default function Navbar() {
   const router = useRouter()
-    const pathname = usePathname()
+  const pathname = usePathname()
 
   const {
     user,
@@ -74,25 +74,25 @@ export default function Navbar() {
         <div className="relative" ref={menuRef}>
           <div
             onClick={() => router.replace(user ? '/dashboard' : '/')}
-          className='pl-4 pr-4 rounded-full cursor-pointer'>
-          <div
-            className="flex items-center gap-2 content-center"
-          >
-           {selectedResort ? <h1 className="font-bold text-xl capitalize">
-              {selectedResort?.name}
-            </h1> : (
-               <Image
+            className='pl-4 pr-4 rounded-full'>
+            <div
+              className="flex items-center gap-2 content-center"
+            >
+              {selectedResort ? <h1 className="font-bold text-xl capitalize cursor-pointer">
+                {selectedResort?.name}
+              </h1> : (
+                <Image
                   src="/logo.png"
                   alt="Resort Logo"
                   width={100}
                   height={0}
-                  className="rounded-lg"
+                  className="rounded-lg cursor-pointer"
                   priority
                 />
-            )}
+              )}
 
-            {/* ✏️ Edit Icon */}
-            {user && resorts.length > 0 && (
+              {/* ✏️ Edit Icon */}
+              {/* {user && resorts.length > 0 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation()
@@ -103,15 +103,15 @@ export default function Navbar() {
                 <ChevronDown width={16}/>
               </button>
              
-            )}
-          </div>
+            )} */}
+            </div>
 
-          {/* Booking link */}
-          {selectedResort?.slug && !refreshing && (
-            <p className="text-xs text-gray-500">
-              /public-booking/{selectedResort.slug}
-            </p>
-          )}
+            {/* Booking link */}
+            {selectedResort?.slug && !refreshing && (
+              <p className="text-xs text-gray-500">
+                {`${window.location.origin}/public-booking/${selectedResort.slug}`}
+              </p>
+            )}
           </div>
 
           {/* 🔥 Popup Menu */}
@@ -206,7 +206,7 @@ export default function Navbar() {
                     Login
                   </button>
 
-                 {!user && <button
+                  {!user && <button
                     onClick={() => router.push('/signup')}
                     className="cursor-pointer bg-[#29b55a] text-white px-4 py-2 rounded"
                   >
