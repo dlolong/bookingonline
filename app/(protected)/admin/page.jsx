@@ -41,6 +41,7 @@ export default function AdminPage() {
         const { data: leadsData, error: leadsError } = await supabase
             .from('leads')
             .select('*')
+            .neq("status", "approved")
             .order('created_at', { ascending: false })
 
         const { data: usersData, error: usersError } = await supabase
@@ -73,6 +74,52 @@ export default function AdminPage() {
         }
 
         showToast({ type: 'success', message: 'Lead updated.' })
+        loadAdminData()
+    }
+
+    const approveLead = async (leadId) => {
+        const confirmed = window.confirm(
+            'Approve this lead and create a user account?'
+        )
+
+        if (!confirmed) return
+
+        const {
+            data: { session },
+        } = await supabase.auth.getSession()
+
+        if (!session?.access_token) {
+            showToast({
+                type: 'error',
+                message: 'Your session expired. Please login again.',
+            })
+            return
+        }
+
+        const res = await fetch('/api/admin/approve-lead', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ leadId }),
+        })
+
+        const result = await res.json()
+
+        if (!res.ok) {
+            showToast({
+                type: 'error',
+                message: result.error || 'Failed to approve lead.',
+            })
+            return
+        }
+
+        showToast({
+            type: 'success',
+            message: 'Lead approved and user created.',
+        })
+
         loadAdminData()
     }
 
@@ -291,25 +338,25 @@ export default function AdminPage() {
                                 )}
 
                                 <div className="flex flex-wrap gap-2 mt-4">
-                                    <button
+                                    {/* <button
                                         onClick={() => updateLeadStatus(lead.id, 'contacted')}
                                         className="bg-blue-600 text-white px-3 py-2 rounded text-sm"
                                     >
                                         Contacted
-                                    </button>
+                                    </button> */}
 
                                     <button
-                                        onClick={() => updateLeadStatus(lead.id, 'approved')}
+                                        onClick={() => approveLead(lead.id)}
                                         className="bg-green-600 text-white px-3 py-2 rounded text-sm"
                                     >
-                                        Approved
+                                        Approve & Create User
                                     </button>
 
                                     <button
                                         onClick={() => updateLeadStatus(lead.id, 'rejected')}
                                         className="bg-red-600 text-white px-3 py-2 rounded text-sm"
                                     >
-                                        Rejected
+                                        Reject
                                     </button>
                                 </div>
                             </div>

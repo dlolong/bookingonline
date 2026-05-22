@@ -179,7 +179,7 @@ export default function Navbar() {
                         </p>
                       </div>
 
-                      <button
+                     {user.role === "admin" && <button
                         onClick={() => {
                           setOpenUserMenu(false)
                           router.push('/admin')
@@ -187,7 +187,7 @@ export default function Navbar() {
                         className="block w-full text-left px-4 py-3 hover:bg-gray-100 cursor-pointer"
                       >
                         Admin
-                      </button>
+                      </button>}
 
                       <button
                         onClick={logout}
