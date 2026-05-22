@@ -236,9 +236,7 @@ export default function AddBookingModal({
                                 )}
 
                                 <input
-                                    min={(formStartDate ? new Date(formStartDate) : new Date())
-                                        .toISOString()
-                                        .split("T")[0]}
+                                    min={new Date().toISOString().split('T')[0]}
                                     type="date"
                                     name="start_date"
                                     value={formStartDate}

@@ -149,7 +149,7 @@ export default function PublicBookingForm({ resort, bookings }) {
             message: 'Available',
         }
     }
-    const startDate =  new Date(`${formStartDate}T${formStartTime}`)
+    const startDate = new Date(`${formStartDate}T${formStartTime}`)
     const endDate = new Date(`${formEndDate}T${formEndTime}`)
 
     const availability = isValid(startDate) && isValid(endDate) && checkAvailability(
@@ -355,15 +355,36 @@ export default function PublicBookingForm({ resort, bookings }) {
             <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="mt-8 flex grid-cols-3 gap-2">
                     <p className='w-88'>Check In</p>
-                    <input
+                    {/* <input
                         min={new Date().toISOString().split('T')[0]}
                         type="date"
                         name="start_date"
                         value={formStartDate}
                         className="flex-1 border p-2 rounded"
                         onChange={(e) => setFormStartDate(e.target.value)}
-                    />
+                    /> */}
 
+                    <div className="relative flex-1">
+                        {!formStartDate && (
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                                Start Date
+                            </span>
+                        )}
+
+                        <input
+                            min={new Date().toISOString().split('T')[0]}
+                            type="date"
+                            name="start_date"
+                            value={formStartDate}
+                            className={`w-full border p-2 pr-10 rounded ${!formStartDate ? "text-transparent" : "text-gray-900"
+                                }`}
+                            onChange={(e) => setFormStartDate(e.target.value)}
+                        />
+
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                            📅
+                        </span>
+                    </div>
                     <input
                         type="time"
                         name="start_time"
@@ -374,14 +395,37 @@ export default function PublicBookingForm({ resort, bookings }) {
                 </div>
                 <div className="flex grid-cols-3 gap-2">
                     <p className='w-88'>Check Out</p>
-                    <input
+                    {/* <input
                         min={(formStartDate ? new Date(formStartDate) : new Date()).toISOString().split('T')[0]}
                         type="date"
                         name="end_date"
                         value={formEndDate}
                         className="flex-1 border p-2 rounded"
                         onChange={(e) => setFormEndDate(e.target.value)}
-                    />
+                    /> */}
+                    <div className="relative flex-1">
+                        {!formStartDate && (
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                                End Date
+                            </span>
+                        )}
+
+                        <input
+                            min={(formStartDate ? new Date(formStartDate) : new Date())
+                                .toISOString()
+                                .split("T")[0]}
+                            type="date"
+                            name="end_date"
+                            value={formEndDate}
+                            className={`w-full border p-2 pr-10 rounded ${!formEndDate ? "text-transparent" : "text-gray-900"
+                                }`}
+                            onChange={(e) => setFormEndDate(e.target.value)}
+                        />
+
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                            📅
+                        </span>
+                    </div>
 
                     <input
                         type="time"
@@ -391,18 +435,17 @@ export default function PublicBookingForm({ resort, bookings }) {
                         onChange={(e) => setFormEndTime(e.target.value)}
                     />
                 </div>
-                 {availability && (
-                <div
-                    className={`p-3 rounded text-sm ${
-                    availability.available
-                        ? 'bg-green-50 text-green-700'
-                        : 'bg-red-50 text-red-700'
-                    }`}
-                >
-                    {availability.available
-                    ? 'Good news! This date and time is available.'
-                    : availability.message}
-                </div>
+                {availability && (
+                    <div
+                        className={`p-3 rounded text-sm ${availability.available
+                                ? 'bg-green-50 text-green-700'
+                                : 'bg-red-50 text-red-700'
+                            }`}
+                    >
+                        {availability.available
+                            ? 'Good news! This date and time is available.'
+                            : availability.message}
+                    </div>
                 )}
 
                 <input
