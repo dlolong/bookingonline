@@ -220,15 +220,15 @@ export default function AddBookingModal({
                     <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-2">
                         <p className='w-88'>Check In</p>
                         <div className='grid grid-cols-2 gap-2'>
-                            {/* <input
+                            <input
                             min={new Date().toISOString().split('T')[0]}
                             type="date"
                             name="start_date"
                             value={formStartDate}
                             className="flex-1 border p-2 rounded text-gray-600"
                             onChange={(e) => setFormStartDate(e.target.value)}
-                        /> */}
-                            <div className="relative flex-1">
+                        />
+                            {/* <div className="relative flex-1">
                                 {!formStartDate && (
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                                         Start Date
@@ -248,7 +248,7 @@ export default function AddBookingModal({
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                                     📅
                                 </span>
-                            </div>
+                            </div> */}
 
                             <input
                                 type="time"
@@ -264,15 +264,15 @@ export default function AddBookingModal({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <p className='w-88'>Check Out</p>
                         <div className='grid grid-cols-2 gap-2'>
-                            {/* <input
+                            <input
                             min={(formStartDate ? new Date(formStartDate) : new Date()).toISOString().split('T')[0]}
                             type="date"
                             name="end_date"
                             value={formEndDate}
                             className="flex-1 border p-2 rounded text-gray-600"
                             onChange={(e) => setFormEndDate(e.target.value)}
-                        /> */}
-                            <div className="relative flex-1">
+                        />
+                            {/* <div className="relative flex-1">
                                 {!formStartDate && (
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                                         End Date
@@ -294,7 +294,7 @@ export default function AddBookingModal({
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                                     📅
                                 </span>
-                            </div>
+                            </div> */}
 
                             <input
                                 type="time"
