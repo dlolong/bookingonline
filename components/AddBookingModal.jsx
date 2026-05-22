@@ -18,11 +18,11 @@ function normalizeMobile(value) {
 }
 
 function isValidMobileNumber(value) {
-        const cleaned = value.replace(/\s+/g, '')
+    const cleaned = value.replace(/\s+/g, '')
 
-        const regex = /^(09|\+639|639)\d{9}$/
-        return regex.test(cleaned)
-    }
+    const regex = /^(09|\+639|639)\d{9}$/
+    return regex.test(cleaned)
+}
 
 export default function AddBookingModal({
     open,
@@ -34,7 +34,7 @@ export default function AddBookingModal({
     const [addBookingProgress, setAddBookingProgress] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
 
-       const defaultForm = {
+    const defaultForm = {
         name: '',
         contact: '',
         start_date: '',
@@ -90,7 +90,7 @@ export default function AddBookingModal({
         const newStart = new Date(`${formStartDate}T${formStartTime}`)
         const newEnd = new Date(`${formEndDate}T${formEndTime}`)
 
-          if (!isValidMobileNumber(formContact)) {
+        if (!isValidMobileNumber(formContact)) {
             showToast({
                 type: 'error',
                 message:
@@ -101,10 +101,10 @@ export default function AddBookingModal({
         }
 
         if (newEnd <= newStart) {
-             showToast({
+            showToast({
                 type: 'error',
                 message:
-                   'Check-out must be later than check-in.',
+                    'Check-out must be later than check-in.',
             })
             setAddBookingProgress(false)
             return
@@ -118,10 +118,10 @@ export default function AddBookingModal({
 
         if (bookingError) {
             console.error(bookingError)
-              showToast({
+            showToast({
                 type: 'error',
                 message:
-                 'Failed to check existing bookings.',
+                    'Failed to check existing bookings.',
             })
             setAddBookingProgress(false)
             return
@@ -140,10 +140,10 @@ export default function AddBookingModal({
         })
 
         if (hasConflict) {
-             showToast({
+            showToast({
                 type: 'error',
                 message:
-                'Selected date and time are already booked.',
+                    'Selected date and time are already booked.',
             })
             setForm({ ...form, start_date: '', end_date: '' })
             setAddBookingProgress(false)
@@ -169,12 +169,12 @@ export default function AddBookingModal({
 
         if (error) {
             console.error(error)
-              showToast({
+            showToast({
                 type: 'error',
                 message:
-                'Failed to save booking.',
+                    'Failed to save booking.',
             })
-            
+
             return
         }
 
@@ -220,22 +220,45 @@ export default function AddBookingModal({
                     <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-2">
                         <p className='w-88'>Check In</p>
                         <div className='grid grid-cols-2 gap-2'>
-                        <input
+                            {/* <input
                             min={new Date().toISOString().split('T')[0]}
                             type="date"
                             name="start_date"
                             value={formStartDate}
-                            className="flex-1 border p-2 rounded"
+                            className="flex-1 border p-2 rounded text-gray-600"
                             onChange={(e) => setFormStartDate(e.target.value)}
-                        />
+                        /> */}
+                            <div className="relative flex-1">
+                                {!formStartDate && (
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                                        Start Date
+                                    </span>
+                                )}
 
-                        <input
-                            type="time"
-                            name="start_time"
-                            value={formStartTime}
-                            className="flex-1 border p-2 rounded"
-                            onChange={(e) => setFormStartTime(e.target.value)}
-                        />
+                                <input
+                                    min={(formStartDate ? new Date(formStartDate) : new Date())
+                                        .toISOString()
+                                        .split("T")[0]}
+                                    type="date"
+                                    name="start_date"
+                                    value={formStartDate}
+                                    className={`w-full border p-2 pr-10 rounded ${!formStartDate ? "text-transparent" : "text-gray-900"
+                                        }`}
+                                    onChange={(e) => setFormStartDate(e.target.value)}
+                                />
+
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    📅
+                                </span>
+                            </div>
+
+                            <input
+                                type="time"
+                                name="start_time"
+                                value={formStartTime}
+                                className="flex-1 border p-2 rounded"
+                                onChange={(e) => setFormStartTime(e.target.value)}
+                            />
                         </div>
                     </div>
 
@@ -243,22 +266,45 @@ export default function AddBookingModal({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <p className='w-88'>Check Out</p>
                         <div className='grid grid-cols-2 gap-2'>
-                        <input
+                            {/* <input
                             min={(formStartDate ? new Date(formStartDate) : new Date()).toISOString().split('T')[0]}
                             type="date"
                             name="end_date"
                             value={formEndDate}
-                            className="flex-1 border p-2 rounded"
+                            className="flex-1 border p-2 rounded text-gray-600"
                             onChange={(e) => setFormEndDate(e.target.value)}
-                        />
+                        /> */}
+                            <div className="relative flex-1">
+                                {!formStartDate && (
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                                        End Date
+                                    </span>
+                                )}
 
-                        <input
-                            type="time"
-                            name="end_time"
-                            value={formEndTime}
-                            className="flex-1 border p-2 rounded"
-                            onChange={(e) => setFormEndTime(e.target.value)}
-                        />
+                                <input
+                                    min={(formStartDate ? new Date(formStartDate) : new Date())
+                                        .toISOString()
+                                        .split("T")[0]}
+                                    type="date"
+                                    name="end_date"
+                                    value={formEndDate}
+                                    className={`w-full border p-2 pr-10 rounded ${!formEndDate ? "text-transparent" : "text-gray-900"
+                                        }`}
+                                    onChange={(e) => setFormEndDate(e.target.value)}
+                                />
+
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    📅
+                                </span>
+                            </div>
+
+                            <input
+                                type="time"
+                                name="end_time"
+                                value={formEndTime}
+                                className="flex-1 border p-2 rounded"
+                                onChange={(e) => setFormEndTime(e.target.value)}
+                            />
                         </div>
                     </div>
 
@@ -271,18 +317,18 @@ export default function AddBookingModal({
                         onChange={(e) => setFormName(e.target.value)}
                     />
 
-                     <input
-                    name="contact"
-                    value={formContact}
-                    onChange={(e) => {
-                        // allow only numbers and +
-                        const value = e.target.value.replace(/[^\d+]/g, '')
-                        setFormContact(value)
-                    }}
-                    placeholder="09XXXXXXXXX"
-                    className="w-full border px-3 py-2.5 sm:p-3 rounded"
-                    maxLength={13}
-                />
+                    <input
+                        name="contact"
+                        value={formContact}
+                        onChange={(e) => {
+                            // allow only numbers and +
+                            const value = e.target.value.replace(/[^\d+]/g, '')
+                            setFormContact(value)
+                        }}
+                        placeholder="09XXXXXXXXX"
+                        className="w-full border px-3 py-2.5 sm:p-3 rounded"
+                        maxLength={13}
+                    />
 
 
                     <input
@@ -294,7 +340,7 @@ export default function AddBookingModal({
                         onChange={(e) => setFormGuests(e.target.value)}
                     />
 
-                   <input
+                    <input
                         type="text"
                         name="agreed_amount"
                         value={formatAmountInput(formAgreedAmount)}
@@ -304,7 +350,7 @@ export default function AddBookingModal({
                         }}
                         placeholder="Agreed Amount"
                         className="w-full border p-2 rounded"
-                        />
+                    />
 
                     <textarea
                         name="notes"

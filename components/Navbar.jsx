@@ -179,7 +179,7 @@ export default function Navbar() {
                         </p>
                       </div>
 
-                     {user.role === "admin" && <button
+                     {profile?.role === "admin" && <button
                         onClick={() => {
                           setOpenUserMenu(false)
                           router.push('/admin')
