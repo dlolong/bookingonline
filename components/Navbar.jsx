@@ -200,20 +200,16 @@ export default function Navbar() {
                 </div>
               ) : (
                 !pathname.includes("public-booking") && <>
-                  <button
+                  {
+                    (pathname === "/" || pathname.includes("signup") || pathname.includes("contact")) &&
+                     <button
                     onClick={() => router.push('/login')}
                     className="cursor-pointer px-4 py-2 rounded border"
                   >
                     Login
-                  </button>
+                  </button>}
 
-                  {!user &&
-                    // <button
-                    //   onClick={() => router.push('/contact')}
-                    //   className="bg-green-600 text-white px-8 py-4 rounded-xl text-lg font-semibold"
-                    // >
-                    //   Request Access
-                    // </button>
+                  {pathname.includes("login") &&
                     <button
                       onClick={() => router.push('/contact')}
                       className="cursor-pointer bg-[#29b55a] text-white px-4 py-2 rounded"
