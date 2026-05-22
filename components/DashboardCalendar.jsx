@@ -132,7 +132,6 @@ export default function DashboardCalendar({ onAddBooking }) {
                   </h6>
                 </div>
 
-                <div className='grid grid-cols-2'>
 
                   <div className="mt-3 space-y-0 text-black-600">
                     <p className='flex items-center text-sm font-bold'>
@@ -161,7 +160,8 @@ export default function DashboardCalendar({ onAddBooking }) {
                       </p>
                     )}
                   </div>
-                  <div className="content-end justify-self-end">
+
+                   <div className="content-end justify-self-end">
                     <button
                       onClick={() => setCancelBooking(booking)}
                       className="cursor-pointer border-1 border-red-200 text-red-300 px-2 py-1 rounded mt-1"
@@ -169,7 +169,7 @@ export default function DashboardCalendar({ onAddBooking }) {
                       Cancel
                     </button>
                   </div>
-                </div>
+                 
               </div>
             ))
           )}

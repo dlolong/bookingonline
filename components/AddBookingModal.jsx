@@ -217,8 +217,9 @@ export default function AddBookingModal({
 
                 <form onSubmit={handleSubmit} className="space-y-3">
 
-                    <div className="mt-8 flex grid-cols-3 gap-2">
+                    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-2">
                         <p className='w-88'>Check In</p>
+                        <div className='grid grid-cols-2 gap-2'>
                         <input
                             min={new Date().toISOString().split('T')[0]}
                             type="date"
@@ -235,11 +236,13 @@ export default function AddBookingModal({
                             className="flex-1 border p-2 rounded"
                             onChange={(e) => setFormStartTime(e.target.value)}
                         />
+                        </div>
                     </div>
 
 
-                    <div className="flex grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <p className='w-88'>Check Out</p>
+                        <div className='grid grid-cols-2 gap-2'>
                         <input
                             min={(formStartDate ? new Date(formStartDate) : new Date()).toISOString().split('T')[0]}
                             type="date"
@@ -256,6 +259,7 @@ export default function AddBookingModal({
                             className="flex-1 border p-2 rounded"
                             onChange={(e) => setFormEndTime(e.target.value)}
                         />
+                        </div>
                     </div>
 
                     <input
