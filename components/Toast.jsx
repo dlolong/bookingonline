@@ -32,9 +32,7 @@ export default function Toast() {
         className={`${styles[toast.type]} text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 max-w-sm`}
       >
         <div className="text-white">{icons[toast.type]}</div>
-
         <p className="text-sm">{toast.message}</p>
-
         <button
           onClick={hideToast}
           aria-label="Close notification"

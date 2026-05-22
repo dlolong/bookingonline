@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { usePathname, useRouter } from 'next/navigation'
-import { isEqual } from 'date-fns'
 
 const AppContext = createContext(null)
 
@@ -24,13 +23,17 @@ export function AppProvider({ children }) {
   const [bookingsLoading, setBookingsLoading] = useState(false)
 
   const [toast, setToast] = useState(null)
+  const [profile, setProfile] = useState(null)
 
   const publicRoutes = [
-    '/',
     '/login',
     '/signup',
     '/forgot-password',
     '/reset-password',
+    '/contact',
+    '/public-booking',
+    '/auth/confirm',
+    '/invite/accept',
   ]
   const isPublicRoute = publicRoutes.some((route) =>
     pathname.startsWith(route)
@@ -81,7 +84,7 @@ export function AppProvider({ children }) {
 
     setBookingsLoading(true)
 
-     const now = new Date().toISOString()
+    const now = new Date().toISOString()
     const { data, error } = await supabase
       .from('bookings')
       .select('*')
@@ -112,6 +115,13 @@ export function AppProvider({ children }) {
     if (!silent) setInitialLoading(true)
     if (silent) setRefreshing(true)
 
+    const publicOnlyRoutes = [
+      '/login',
+      '/signup',
+      '/forgot-password',
+      '/reset-password',
+    ]
+
     setUser(currentUser)
 
     if (!currentUser) {
@@ -123,11 +133,23 @@ export function AppProvider({ children }) {
       return
     }
 
-    if (isPublicRoute) {
-      router.push('/dashboard')
+    const isPublicOnlyRoute = publicOnlyRoutes.some((route) =>
+      pathname.startsWith(route)
+    )
+
+    if (pathname === '/' || isPublicOnlyRoute) {
+      router.replace('/dashboard')
     }
 
     setGetResortsProgress(true)
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .maybeSingle()
+
+    setProfile(profileData || null)
+
     const { data: resortsData, error } = await supabase
       .from('resorts')
       .select('*')
@@ -137,7 +159,10 @@ export function AppProvider({ children }) {
     setGetResortsProgress(false)
     if (!error) {
 
-      if (resortsData.length < 1) {
+      if (
+        resortsData.length < 1 &&
+        !pathname.startsWith('/admin')
+      ) {
         router.replace('/onboarding')
       }
 
@@ -193,6 +218,7 @@ export function AppProvider({ children }) {
     <AppContext.Provider
       value={{
         user,
+        profile,
         getResortsProgress,
         resorts,
         selectedResort,

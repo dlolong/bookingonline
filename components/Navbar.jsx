@@ -20,6 +20,7 @@ export default function Navbar() {
     initialLoading,
     refreshing,
     logout,
+    profile,
   } = useApp()
 
   const [openMenu, setOpenMenu] = useState(false)
@@ -78,7 +79,8 @@ export default function Navbar() {
             <div
               className="flex items-center gap-2 content-center"
             >
-              {selectedResort ? <h1 className="font-bold text-xl capitalize cursor-pointer">
+              {pathname.includes("/dashboard")
+              && selectedResort ? <h1 className="font-bold text-xl capitalize cursor-pointer">
                 {selectedResort?.name}
               </h1> : (
                 <Image
@@ -92,7 +94,7 @@ export default function Navbar() {
               )}
 
               {/* ✏️ Edit Icon */}
-              {/* {user && resorts.length > 0 && (
+              {user && profile?.plan === "pro" && pathname.includes("/dashboard") && resorts.length > 0 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation()
@@ -102,12 +104,11 @@ export default function Navbar() {
               >
                 <ChevronDown width={16}/>
               </button>
-             
-            )} */}
+            )}
             </div>
 
             {/* Booking link */}
-            {selectedResort?.slug && !refreshing && (
+            {pathname.includes('/dashboard') && selectedResort?.slug && !refreshing && (
               <p className="text-xs text-gray-500">
                 {`/public-booking/${selectedResort.slug}`}
               </p>
@@ -206,12 +207,20 @@ export default function Navbar() {
                     Login
                   </button>
 
-                  {!user && <button
-                    onClick={() => router.push('/signup')}
-                    className="cursor-pointer bg-[#29b55a] text-white px-4 py-2 rounded"
-                  >
-                    Try Free
-                  </button>}
+                  {!user &&
+                    // <button
+                    //   onClick={() => router.push('/contact')}
+                    //   className="bg-green-600 text-white px-8 py-4 rounded-xl text-lg font-semibold"
+                    // >
+                    //   Request Access
+                    // </button>
+                    <button
+                      onClick={() => router.push('/contact')}
+                      className="cursor-pointer bg-[#29b55a] text-white px-4 py-2 rounded"
+                    >
+                      Request Access
+                    </button>
+                  }
                 </>
               )}
             </>

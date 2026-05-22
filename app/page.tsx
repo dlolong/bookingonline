@@ -18,16 +18,22 @@ export default function WelcomePage() {
           track reservations, and manage guest requests in one place.
         </p>
 
-        <button
+        {/* <button
           onClick={() => router.push('/signup')}
           className="cursor-pointer bg-[#29b55a] text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-green-700"
         >
           Try Free
-        </button>
+        </button> */}
+        <button
+  onClick={() => router.push('/contact')}
+  className="bg-green-600 text-white px-8 py-4 rounded-xl text-lg font-semibold"
+>
+  Request Access for FREE
+</button>
 
-        <p className="text-sm text-gray-500 mt-3">
-          No credit card required
-        </p>
+        {/* <p className="text-sm text-gray-500 mt-3">
+          It is FREE!
+        </p> */}
       </section>
 
       <section className="max-w-6xl mx-auto px-6 py-6 grid md:grid-cols-3 gap-6">
