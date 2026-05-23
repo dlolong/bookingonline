@@ -165,13 +165,6 @@ export function AppProvider({ children }) {
     setGetResortsProgress(false)
     if (!error) {
 
-      if (
-        resortsData.length < 1 &&
-        !pathname.startsWith('/admin')
-      ) {
-        router.replace('/onboarding')
-      }
-
       const resortsList = resortsData || []
       const storedId = localStorage.getItem('selected_resort_id')
 
@@ -183,6 +176,21 @@ export function AppProvider({ children }) {
         null
 
       setSelectedResortState(selected)
+
+      if (
+        resortsList.length === 0 &&
+        pathname !== '/onboarding' &&
+        !pathname.startsWith('/admin')
+      ) {
+        router.replace('/onboarding')
+      }
+
+      if (
+        resortsList.length > 0 &&
+        (pathname === '/onboarding' || pathname === '/login')
+      ) {
+        router.replace('/dashboard')
+      }
 
       if (selected?.id) {
         await refreshBookings(selected.id)

@@ -28,9 +28,10 @@ export default function LoginPage() {
         type: "error",
         message: error.message
       })
-    } else {
-      router.push('/dashboard')
     }
+    // else {
+    //   router.push('/dashboard')
+    // }
   }
 
   // const clearSession = async () => {
