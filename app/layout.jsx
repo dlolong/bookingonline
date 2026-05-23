@@ -6,13 +6,18 @@ import Toast from '@/components/Toast'
 export const metadata = {
   title: 'Resort Booking',
   description: 'Easy resort booking system',
+  manifest: '/manifest.json',
+  themeColor: '#16a34a',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/icon-192.png',
+    apple: '/apple-touch-icon.png',
   },
-  openGraph: {
-    title: 'Resort Booking',
-    images: ['/og-image.png'],
-  },
+}
+
+export const viewport = {
+  themeColor: '#16a34a',
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({ children }) {
