@@ -8,10 +8,11 @@ import { useApp } from '@/context/AppContext'
 import { useRouter } from 'next/navigation'
 import { RefreshCw } from 'lucide-react'
 import Loader from '@/components/Loader'
+import CompletedBookings from '@/components/CompletedBookings'
 
 export default function DashboardPage() {
   const { initialLoading, bookingsLoading, refreshBookings, getResortsProgress, resorts, user } = useApp()
-  const [activeTab, setActiveTab] = useState('calendar')
+  const [activeTab, setActiveTab] = useState('pending')
   const [showModal, setShowAddBooking] = useState(false)
   const [bookingModalData, setBookingModalData] = useState(null)
 
@@ -68,11 +69,10 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Mobile tabs only */}
-      <div className="flex gap-2 border-b border-[#cacecf] mb-6 md:hidden">
+      <div className="flex gap-2 border-b border-[#cacecf] mb-6">
         <button
-          onClick={() => setActiveTab('bookings')}
-          className={`cursor-pointer  px-4 py-2 ${activeTab === 'bookings'
+          onClick={() => setActiveTab('pending')}
+          className={`cursor-pointer  px-4 py-2 ${activeTab === 'pending'
               ? 'border-b-2 border-[#29b55a] text-[#29b55a] font-semibold'
               : 'text-gray-500'
             }`}
@@ -80,29 +80,39 @@ export default function DashboardPage() {
           Pending
         </button>
         <button
-          onClick={() => setActiveTab('calendar')}
-          className={`cursor-pointer px-4 py-2 ${activeTab === 'calendar'
+          onClick={() => setActiveTab('reserved')}
+          className={`cursor-pointer px-4 py-2 ${activeTab === 'reserved'
               ? 'border-b-2 border-[#29b55a] text-[#29b55a] font-semibold'
               : 'text-gray-500'
             }`}
         >
           Reserved
         </button>
+
+         <button
+          onClick={() => setActiveTab('completed')}
+          className={`cursor-pointer px-4 py-2 ${activeTab === 'completed'
+              ? 'border-b-2 border-[#29b55a] text-[#29b55a] font-semibold'
+              : 'text-gray-500'
+            }`}
+        >
+          Completed
+        </button>
       </div>
 
-      {/* Mobile view */}
-      <div className="md:hidden pb-32">
-        {activeTab === 'bookings' && <DashboardBookings />}
-        {activeTab === 'calendar' && <DashboardCalendar onAddBooking={handleOnAddBooking} />}
+      <div className="pb-32">
+        {activeTab === 'pending' && <DashboardBookings />}
+        {activeTab === 'reserved' && <DashboardCalendar onAddBooking={handleOnAddBooking} />}
+        {activeTab === 'completed' && <CompletedBookings />}
       </div>
 
       {/* Desktop / tablet view: side by side */}
-      <div className="hidden pb-32 md:grid md:grid-cols-2 gap-6 items-start">
+      {/* <div className="hidden pb-32 md:grid md:grid-cols-2 gap-6 items-start">
         <DashboardBookings />
         <div className='md:pl-4'>
           <DashboardCalendar onAddBooking={handleOnAddBooking} />
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }

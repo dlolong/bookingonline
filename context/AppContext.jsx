@@ -20,6 +20,7 @@ export function AppProvider({ children }) {
 
   const [confirmedBookings, setConfirmedBookings] = useState([])
   const [pendingBookings, setPendingBookings] = useState([])
+  const [completedBookings, setCompletedBookings] = useState([])
   const [bookingsLoading, setBookingsLoading] = useState(false)
 
   const [toast, setToast] = useState(null)
@@ -76,6 +77,7 @@ export function AppProvider({ children }) {
       await refreshBookings(resort.id)
     } else {
       localStorage.removeItem('selected_resort_id')
+      setCompletedBookings([])
       setConfirmedBookings([])
       setPendingBookings([])
     }
@@ -83,6 +85,7 @@ export function AppProvider({ children }) {
 
   const refreshBookings = async (resortId = selectedResort?.id) => {
     if (!resortId) {
+      setCompletedBookings([])
       setConfirmedBookings([])
       setPendingBookings([])
       return
@@ -96,7 +99,7 @@ export function AppProvider({ children }) {
       .select('*')
       .eq('resort_id', resortId)
       .in('status', ['confirmed', 'pending'])
-      .gte('end_datetime', now)
+      // .gte('end_datetime', now)
       .order('start_datetime', { ascending: true })
 
     if (error) {
@@ -107,12 +110,16 @@ export function AppProvider({ children }) {
 
     const bookings = data || []
 
+    setCompletedBookings(
+      bookings.filter((b) => (b) => new Date(b.end_datetime) < now)
+    )
+
     setConfirmedBookings(
-      bookings.filter((b) => b.status === 'confirmed')
+      bookings.filter((b) => b.status === 'confirmed' &&  new Date(b.end_datetime) >= now)
     )
 
     setPendingBookings(
-      bookings.filter((b) => b.status === 'pending')
+      bookings.filter((b) => b.status === 'pending' && new Date(b.end_datetime) >= now)
     )
     setBookingsLoading(false)
   }
@@ -291,6 +298,7 @@ export function AppProvider({ children }) {
         selectedResort,
         setSelectedResort,
 
+        completedBookings,
         confirmedBookings,
         pendingBookings,
         bookingsLoading,
