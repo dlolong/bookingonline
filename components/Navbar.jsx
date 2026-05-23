@@ -204,7 +204,7 @@ export default function Navbar() {
                     (pathname === "/" || pathname.includes("signup") || pathname.includes("contact")) &&
                      <button
                     onClick={() => router.push('/login')}
-                    className="cursor-pointer px-4 py-2 rounded border"
+                    className="px-4 py-2 cursor-pointer rounded-xl font-semibold border hover:border-2 hover:border-green-700"
                   >
                     Login
                   </button>}
@@ -212,7 +212,9 @@ export default function Navbar() {
                   {pathname.includes("login") &&
                     <button
                       onClick={() => router.push('/contact')}
-                      className="cursor-pointer bg-[#29b55a] text-white px-4 py-2 rounded"
+                      className="
+                      cursor-pointer bg-[#29b55a] text-white px-4 py-2 rounded-xl font-semibold hover:bg-green-700
+                      "
                     >
                       Request Access
                     </button>

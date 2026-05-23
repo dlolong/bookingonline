@@ -26,7 +26,7 @@ export default function WelcomePage() {
         </button> */}
         <button
   onClick={() => router.push('/contact')}
-  className="bg-green-600 text-white px-8 py-4 rounded-xl text-lg font-semibold"
+  className="cursor-pointer bg-[#29b55a] text-white px-6 py-3 rounded-xl font-semibold hover:bg-green-700"
 >
   Request Access for FREE
 </button>
@@ -43,7 +43,7 @@ export default function WelcomePage() {
             Booking Calendar
           </h3>
           <p className="text-gray-600">
-            See confirmed and pending bookings clearly in one calendar.
+            See confirmed and pending bookings clearly.
           </p>
         </div>
 

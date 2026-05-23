@@ -48,6 +48,12 @@ export function AppProvider({ children }) {
   }
 
   const hideToast = () => setToast(null)
+  
+  const clearSession = async () => {
+    await supabase.auth.signOut()
+    localStorage.clear()
+    window.location.reload()
+  }
 
   const logout = async () => {
     await supabase.auth.signOut()
@@ -214,6 +220,59 @@ export function AppProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  useEffect(() => {
+  let mounted = true
+
+  const initSession = async () => {
+    const { data, error } = await supabase.auth.getSession()
+
+    if (!mounted) return
+
+    if (
+      error?.message?.includes('Invalid Refresh Token') ||
+      error?.message?.includes('Refresh Token Not Found')
+    ) {
+      await supabase.auth.signOut()
+      setUser(null)
+      setResorts([])
+      setSelectedResortState(null)
+      setConfirmedBookings([])
+      setPendingBookings([])
+      localStorage.removeItem('selected_resort_id')
+      setInitialLoading(false)
+      return
+    }
+
+    await loadAppData(data.session?.user || null)
+  }
+
+  initSession()
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange(async (event, session) => {
+    if (!mounted) return
+
+    if (event === 'SIGNED_OUT' || !session) {
+      setUser(null)
+      setResorts([])
+      setSelectedResortState(null)
+      setConfirmedBookings([])
+      setPendingBookings([])
+      localStorage.removeItem('selected_resort_id')
+      setInitialLoading(false)
+      return
+    }
+
+    await loadAppData(session.user, true)
+  })
+
+  return () => {
+    mounted = false
+    subscription.unsubscribe()
+  }
+}, [])
+
   return (
     <AppContext.Provider
       value={{
@@ -237,6 +296,7 @@ export function AppProvider({ children }) {
         toast,
         showToast,
         hideToast,
+        clearSession,
       }}
     >
       {children}
