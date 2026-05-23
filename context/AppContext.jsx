@@ -104,10 +104,10 @@ export function AppProvider({ children }) {
     const bookings = data || []
 
     const now = new Date()
+    
     setCompletedBookings(
-      bookings.filter((b) => (b) => new Date(b.end_datetime) < now)
+      bookings.filter((b) =>  b.status === 'confirmed' && new Date(b.end_datetime) < now)
     )
-
 
     setConfirmedBookings(
       bookings.filter((b) => b.status === 'confirmed' && new Date(b.end_datetime) >= now)
