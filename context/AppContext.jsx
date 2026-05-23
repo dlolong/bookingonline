@@ -49,12 +49,6 @@ export function AppProvider({ children }) {
   }
 
   const hideToast = () => setToast(null)
-  
-  const clearSession = async () => {
-    await supabase.auth.signOut()
-    localStorage.clear()
-    window.location.reload()
-  }
 
   const logout = async () => {
     await supabase.auth.signOut()
@@ -93,7 +87,6 @@ export function AppProvider({ children }) {
 
     setBookingsLoading(true)
 
-    const now = new Date().toISOString()
     const { data, error } = await supabase
       .from('bookings')
       .select('*')
@@ -110,11 +103,13 @@ export function AppProvider({ children }) {
 
     const bookings = data || []
 
+     const now = new Date()
     setCompletedBookings(
       bookings.filter((b) => (b) => new Date(b.end_datetime) < now)
     )
 
-    setConfirmedBookings(
+
+     setConfirmedBookings(
       bookings.filter((b) => b.status === 'confirmed' &&  new Date(b.end_datetime) >= now)
     )
 
@@ -150,10 +145,9 @@ export function AppProvider({ children }) {
       pathname.startsWith(route)
     )
 
-    if (pathname === '/' || isPublicOnlyRoute) {
+   if (pathname === '/' || isPublicOnlyRoute) {
       router.replace('/dashboard')
     }
-
     setGetResortsProgress(true)
     const { data: profileData } = await supabase
       .from('profiles')
@@ -184,7 +178,7 @@ export function AppProvider({ children }) {
 
       setSelectedResortState(selected)
 
-      if (
+        if (
         resortsList.length === 0 &&
         pathname !== '/onboarding' &&
         !pathname.startsWith('/admin')
@@ -235,59 +229,6 @@ export function AppProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  useEffect(() => {
-  let mounted = true
-
-  const initSession = async () => {
-    const { data, error } = await supabase.auth.getSession()
-
-    if (!mounted) return
-
-    if (
-      error?.message?.includes('Invalid Refresh Token') ||
-      error?.message?.includes('Refresh Token Not Found')
-    ) {
-      await supabase.auth.signOut()
-      setUser(null)
-      setResorts([])
-      setSelectedResortState(null)
-      setConfirmedBookings([])
-      setPendingBookings([])
-      localStorage.removeItem('selected_resort_id')
-      setInitialLoading(false)
-      return
-    }
-
-    await loadAppData(data.session?.user || null)
-  }
-
-  initSession()
-
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange(async (event, session) => {
-    if (!mounted) return
-
-    if (event === 'SIGNED_OUT' || !session) {
-      setUser(null)
-      setResorts([])
-      setSelectedResortState(null)
-      setConfirmedBookings([])
-      setPendingBookings([])
-      localStorage.removeItem('selected_resort_id')
-      setInitialLoading(false)
-      return
-    }
-
-    await loadAppData(session.user, true)
-  })
-
-  return () => {
-    mounted = false
-    subscription.unsubscribe()
-  }
-}, [])
-
   return (
     <AppContext.Provider
       value={{
@@ -312,7 +253,6 @@ export function AppProvider({ children }) {
         toast,
         showToast,
         hideToast,
-        clearSession,
       }}
     >
       {children}
