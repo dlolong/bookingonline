@@ -103,14 +103,14 @@ export function AppProvider({ children }) {
 
     const bookings = data || []
 
-     const now = new Date()
+    const now = new Date()
     setCompletedBookings(
       bookings.filter((b) => (b) => new Date(b.end_datetime) < now)
     )
 
 
-     setConfirmedBookings(
-      bookings.filter((b) => b.status === 'confirmed' &&  new Date(b.end_datetime) >= now)
+    setConfirmedBookings(
+      bookings.filter((b) => b.status === 'confirmed' && new Date(b.end_datetime) >= now)
     )
 
     setPendingBookings(
@@ -145,7 +145,7 @@ export function AppProvider({ children }) {
       pathname.startsWith(route)
     )
 
-   if (pathname === '/' || isPublicOnlyRoute) {
+    if (pathname === '/' || isPublicOnlyRoute) {
       router.replace('/dashboard')
     }
     setGetResortsProgress(true)
@@ -178,7 +178,7 @@ export function AppProvider({ children }) {
 
       setSelectedResortState(selected)
 
-        if (
+      if (
         resortsList.length === 0 &&
         pathname !== '/onboarding' &&
         !pathname.startsWith('/admin')
@@ -202,32 +202,84 @@ export function AppProvider({ children }) {
     setRefreshing(false)
   }
 
+  // useEffect(() => {
+  //   supabase.auth.getSession().then(({ data }) => {
+  //     loadAppData(data.session?.user || null)
+  //   })
+
+  //   const {
+  //     data: { subscription },
+  //   } = supabase.auth.onAuthStateChange((event, session) => {
+  //     if (event === 'SIGNED_OUT' || !session) {
+  //       loadAppData(null, true)
+  //       setUser(null)
+  //       setResorts([])
+  //       setSelectedResortState(null)
+
+  //       if (!isPublicRoute) {
+  //         router.replace('/')
+  //       }
+  //       return
+  //     }
+
+  //     // silent refresh = no full-page loader
+  //     loadAppData(session.user, true)
+  //   })
+
+  //   return () => subscription.unsubscribe()
+  // }, [])
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      loadAppData(data.session?.user || null)
-    })
+    let isMounted = true
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        loadAppData(null, true)
-        setUser(null)
-        setResorts([])
-        setSelectedResortState(null)
+    const clearAuthData = () => {
+      if (!isMounted) return
 
-        if (!isPublicRoute) {
-          router.replace('/')
-        }
+      loadAppData(null, true)
+      setUser(null)
+      setResorts([])
+      setSelectedResortState(null)
+
+      if (!isPublicRoute) {
+        router.replace('/')
+      }
+    }
+
+    const initSession = async () => {
+      const { data, error } = await supabase.auth.getSession()
+
+      if (
+        error ||
+        !data.session ||
+        error?.message?.includes('Invalid Refresh Token') ||
+        error?.message?.includes('Refresh Token Not Found')
+      ) {
+        await supabase.auth.signOut()
+        clearAuthData()
         return
       }
 
-      // silent refresh = no full-page loader
+      loadAppData(data.session.user || null)
+    }
+
+    initSession()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        clearAuthData()
+        return
+      }
+
       loadAppData(session.user, true)
     })
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
+  }, [isPublicRoute, router])
 
   return (
     <AppContext.Provider
