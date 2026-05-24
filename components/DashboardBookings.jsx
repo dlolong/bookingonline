@@ -139,7 +139,12 @@ export default function DashboardBookings() {
 
                             <button
                                 onClick={updateBookingStatus}
-                                disabled={updateBookingProgress || !agreedAmount || !downpayment}
+                                disabled={updateBookingProgress 
+                                || (
+                                    confirmAction?.status === 'confirmed' 
+                                    && (!agreedAmount || !downpayment)
+                                )
+                                }
                                 className={`
                                     disabled:bg-gray-400
                                     disabled:cursor-default
