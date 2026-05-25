@@ -14,7 +14,7 @@ export default async function PublicBookingPage({ params }) {
 
   const { data: resort } = await supabase
     .from('resorts')
-    .select('id, name, slug')
+    .select('id, name, slug, user_id')
     .eq('slug', slug)
     .maybeSingle()
 
@@ -25,6 +25,16 @@ export default async function PublicBookingPage({ params }) {
       </div>
     )
   }
+
+  console.log("resort: ", resort)
+
+   const { data: profile } = await supabase
+    .from('profiles')
+    .select('show_public_calendar')
+    .eq('id', resort.user_id)
+    .maybeSingle()
+
+    console.log("profile: ", profile)
 
   // const { data: bookings } = await supabase
   //   .from('bookings')
@@ -47,6 +57,7 @@ export default async function PublicBookingPage({ params }) {
         <PublicBookingForm
           resort={resort}
           bookings={bookings || []}
+          showCalendar={profile?.show_public_calendar}
         />
       </div>
     </div>

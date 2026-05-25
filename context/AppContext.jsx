@@ -286,6 +286,7 @@ export function AppProvider({ children }) {
       value={{
         user,
         profile,
+        setProfile,
         getResortsProgress,
         resorts,
         selectedResort,

@@ -15,6 +15,8 @@ function formatDateTime(datetime) {
 
 export default function DashboardCalendar({ onAddBooking }) {
   const {
+    profile,
+    refreshAppData,
     confirmedBookings,
     bookingsLoading,
     initialLoading,
@@ -30,6 +32,32 @@ export default function DashboardCalendar({ onAddBooking }) {
 
   if (initialLoading) {
     return <Loader text="Loading calendar..." />
+  }
+
+  const updatePublicCalendar = async (checked) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        show_public_calendar: checked,
+      })
+      .eq('id', profile.id)
+
+    if (error) {
+      showToast({
+        type: 'error',
+        message: 'Failed to update public calendar setting.',
+      })
+      return
+    }
+
+    showToast({
+      type: 'success',
+      message: checked
+        ? 'Public calendar is now visible.'
+        : 'Public calendar is now hidden.',
+    })
+
+    await refreshAppData()
   }
 
   const handleCancelBooking = async () => {
@@ -70,8 +98,9 @@ export default function DashboardCalendar({ onAddBooking }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-4">
+    <div className="flex items-center justify-center">
 
+ <div className='bg-white w-full max-w-md rounded-2xl shadow p-6'>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h4 className="font-bold sr-only md:not-sr-only">Reserved</h4>
@@ -99,17 +128,47 @@ export default function DashboardCalendar({ onAddBooking }) {
             <List size={18} />
           </button>
         </div>
-
       </div>
 
-
       {view === 'calendar' ? (
-        <CalendarView
-          bookings={confirmedBookings}
-          onBookingCancelled={refreshBookings}
-          onAddBooking={onAddBooking}
-          onCancelBooking={setCancelBooking}
-        />
+        <>
+          <div className="grid grid-cols-[50px_1fr] mb-4">
+             <button
+              type="button"
+              onClick={() =>
+                updatePublicCalendar(!profile?.show_public_calendar)
+              }
+              className={`relative inline-flex h-6 w-10 items-center rounded-full transition ${profile?.show_public_calendar
+                  ? 'bg-green-600'
+                  : 'bg-gray-300'
+                }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${profile?.show_public_calendar
+                    ? 'translate-x-4'
+                    : 'translate-x-1'
+                  }`}
+              />
+            </button>
+            <div>
+              <p className="font-semibold">
+                Show calendar in public
+              </p>
+              <p className="text-xs text-gray-500">
+                Allow guests to see availability calendar on your booking page.
+              </p>
+            </div>
+              
+          </div>
+
+          <CalendarView
+            bookings={confirmedBookings}
+            onBookingCancelled={refreshBookings}
+            onAddBooking={onAddBooking}
+            onCancelBooking={setCancelBooking}
+          />
+        </>
+
       ) : (
         <div className="space-y-3">
 
@@ -133,48 +192,49 @@ export default function DashboardCalendar({ onAddBooking }) {
                 </div>
 
 
-                  <div className="mt-3 space-y-0 text-black-600">
-                    <p className='flex items-center text-sm font-bold'>
-                        <span className='mr-2'>✅</span> Amount: {formatAmount(booking.agreed_amount)}
-                      </p>
-                    <p className='flex items-center text-gray-500 text-sm'>
-                      <CircleMinus width={16} className='text-gray-700 mr-2' />Downpayment: {formatAmount(booking.downpayment)}
-                    </p>
-                      <p className='flex items-center text-sm'>
-                      <CircleMinus width={16} className='text-gray-700 mr-2 font-bold' />Balance: {formatAmount(booking.agreed_amount -  booking.downpayment)}
-                    </p>
-                    <p className='flex items-center text-sm mt-2'>
-                      <User width={16} className='text-gray-700 mr-2' /> {booking.name}
-                    </p>
+                <div className="mt-3 space-y-0 text-black-600">
+                  <p className='flex items-center text-sm font-bold'>
+                    <span className='mr-2'>✅</span> Amount: {formatAmount(booking.agreed_amount)}
+                  </p>
+                  <p className='flex items-center text-gray-500 text-sm'>
+                    <CircleMinus width={16} className='text-gray-700 mr-2' />Downpayment: {formatAmount(booking.downpayment)}
+                  </p>
+                  <p className='flex items-center text-sm'>
+                    <CircleMinus width={16} className='text-gray-700 mr-2 font-bold' />Balance: {formatAmount(booking.agreed_amount - booking.downpayment)}
+                  </p>
+                  <p className='flex items-center text-sm mt-2'>
+                    <User width={16} className='text-gray-700 mr-2' /> {booking.name}
+                  </p>
+                  <p className='flex items-center text-sm'>
+                    <Users width={16} className='text-gray-700 mr-2' /> {booking.guests} pax
+                  </p>
+
+                  <p className='flex items-center text-sm'>
+                    <Phone width={16} className='text-gray-700 mr-2' /> {booking.contact}
+                  </p>
+
+                  {booking.notes && (
                     <p className='flex items-center text-sm'>
-                      <Users width={16} className='text-gray-700 mr-2' /> {booking.guests} pax
+                      <NotepadText width={16} className='text-gray-700 mr-2' /> {booking.notes}
                     </p>
+                  )}
+                </div>
 
-                    <p className='flex items-center text-sm'>
-                      <Phone width={16} className='text-gray-700 mr-2' /> {booking.contact}
-                    </p>
+                <div className="content-end justify-self-end">
+                  <button
+                    onClick={() => setCancelBooking(booking)}
+                    className="cursor-pointer border-1 border-red-200 text-red-300 px-2 py-1 rounded mt-1"
+                  >
+                    Cancel
+                  </button>
+                </div>
 
-                    {booking.notes && (
-                      <p className='flex items-center text-sm'>
-                        <NotepadText width={16} className='text-gray-700 mr-2' /> {booking.notes}
-                      </p>
-                    )}
-                  </div>
-
-                   <div className="content-end justify-self-end">
-                    <button
-                      onClick={() => setCancelBooking(booking)}
-                      className="cursor-pointer border-1 border-red-200 text-red-300 px-2 py-1 rounded mt-1"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                 
               </div>
             ))
           )}
         </div>
       )}
+      </div>
 
 
       {cancelBooking && (

@@ -26,7 +26,7 @@ function isValidMobileNumber(value) {
     return regex.test(cleaned)
 }
 
-export default function PublicBookingForm({ resort, bookings }) {
+export default function PublicBookingForm({ resort, bookings, showCalendar }) {
     const { showToast } = useApp()
 
     const [loading, setLoading] = useState(false)
@@ -627,45 +627,51 @@ export default function PublicBookingForm({ resort, bookings }) {
                     Select available dates and send your reservation request
                 </p>
             </div>
-            <div className='flex items-center justify-center'>
-                {rightBox}
-            </div>
 
-            {/* Mobile tabs only */}
-            {/* <div className="flex gap-2 border-b border-[#cacecf] mb-6 md:hidden">
-                <button
-                    onClick={() => setActiveTab('availability')}
-                    className={`cursor-pointer  px-4 py-2 ${activeTab === 'availability'
-                        ? 'border-b-2 border-[#29b55a] text-[#29b55a] font-semibold'
-                        : 'text-gray-500'
-                        }`}
-                >
-                    Availability Calendar
-                </button>
-                <button
-                    onClick={() => setActiveTab('reservation')}
-                    className={`cursor-pointer px-4 py-2 ${activeTab === 'reservation'
-                        ? 'border-b-2 border-[#29b55a] text-[#29b55a] font-semibold'
-                        : 'text-gray-500'
-                        }`}
-                >
-                    Reservation Form
-                </button>
-            </div> */}
+            {showCalendar ? (
+                <>
+                    {/* Mobile tabs only */}
+                    <div className="flex gap-2 border-b border-[#cacecf] mb-6 md:hidden">
+                        <button
+                            onClick={() => setActiveTab('availability')}
+                            className={`cursor-pointer  px-4 py-2 ${activeTab === 'availability'
+                                ? 'border-b-2 border-[#29b55a] text-[#29b55a] font-semibold'
+                                : 'text-gray-500'
+                                }`}
+                        >
+                            Availability Calendar
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('reservation')}
+                            className={`cursor-pointer px-4 py-2 ${activeTab === 'reservation'
+                                ? 'border-b-2 border-[#29b55a] text-[#29b55a] font-semibold'
+                                : 'text-gray-500'
+                                }`}
+                        >
+                            Reservation Form
+                        </button>
+                    </div>
 
-            {/* Mobile view */}
-            {/* <div className="md:hidden pb-32">
-                {activeTab === 'availability' && leftBox}
-                {activeTab === 'reservation' && rightBox}
-            </div> */}
+                    {/* Mobile view */}
+                    <div className="md:hidden pb-32">
+                        {activeTab === 'availability' && leftBox}
+                        {activeTab === 'reservation' && rightBox}
+                    </div>
 
-            {/* Desktop / tablet view: side by side */}
-            {/* <div className="hidden pb-32 md:grid md:grid-cols-2 gap-6 items-start">
-                {leftBox}
-                <div className='md:pl-4'>
+                    {/* Desktop / tablet view: side by side */}
+                    <div className="hidden pb-32 md:grid md:grid-cols-2 gap-6 items-start">
+                        {leftBox}
+                        <div className='md:pl-4'>
+                            {rightBox}
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <div className='flex items-center justify-center'>
                     {rightBox}
                 </div>
-            </div> */}
+            )}
+
         </>
     )
 }
