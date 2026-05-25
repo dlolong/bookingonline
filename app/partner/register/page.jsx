@@ -12,6 +12,23 @@ function createSlug(text) {
         .replace(/^-+|-+$/g, '')
 }
 
+function isValidMobileNumber(value) {
+    const cleaned = value.replace(/\s+/g, '')
+
+    const regex = /^(09|\+639|639)\d{9}$/
+    return regex.test(cleaned)
+}
+
+function normalizeMobile(value) {
+    if (value.startsWith('09')) {
+        return '+63' + value.slice(1)
+    }
+    if (value.startsWith('639')) {
+        return '+' + value
+    }
+    return value
+}
+
 export default function PartnerRegisterPage() {
     const { showToast } = useApp()
 
@@ -35,6 +52,16 @@ export default function PartnerRegisterPage() {
         e.preventDefault()
         setLoading(true)
 
+        if (!isValidMobileNumber(form.mobile)) {
+            showToast({
+                type: 'error',
+                message:
+                    'Please enter a valid mobile number (e.g. 09171234567 or +639171234567)',
+            })
+            setLoading(false)
+            return
+        }
+
         const slug = createSlug(form.name)
 
         const { data, error } = await supabase
@@ -43,7 +70,7 @@ export default function PartnerRegisterPage() {
                 {
                     name: form.name,
                     email: form.email,
-                    mobile: form.mobile,
+                    mobile: normalizeMobile(form.mobile),
                     slug,
                     status: 'pending',
                 },
@@ -122,6 +149,18 @@ export default function PartnerRegisterPage() {
                 />
 
                 <input
+                    name="contact"
+                    value={form.mobile}
+                    onChange={(e) => {
+                        const value = e.target.value.replace(/[^\d+]/g, '')
+                        setForm((p) => ({ ...p, mobile: value }))
+                    }}
+                    placeholder="09XXXXXXXXX"
+                    className="w-full border px-3 py-2.5 sm:p-3 rounded"
+                    maxLength={13}
+                />
+
+                <input
                     type="email"
                     placeholder="Email"
                     className="w-full border p-3 rounded"
@@ -132,17 +171,8 @@ export default function PartnerRegisterPage() {
                     required
                 />
 
-                <input
-                    placeholder="Mobile Number"
-                    className="w-full border p-3 rounded"
-                    value={form.mobile}
-                    onChange={(e) =>
-                        setForm((p) => ({ ...p, mobile: e.target.value }))
-                    }
-                />
-
                 <button
-                    disabled={loading}
+                    disabled={loading || !form.mobile || !form.email}
                     className="w-full bg-green-600 text-white p-3 rounded disabled:bg-gray-400"
                 >
                     {loading ? 'Submitting...' : 'Register as Partner'}
