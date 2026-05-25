@@ -11,7 +11,7 @@ import Loader from '@/components/Loader'
 import CompletedBookings from '@/components/CompletedBookings'
 
 export default function DashboardPage() {
-  const { initialLoading, bookingsLoading, refreshBookings, getResortsProgress, resorts, user } = useApp()
+  const { bookingsLoading, refreshBookings, resorts, user } = useApp()
   const [activeTab, setActiveTab] = useState('pending')
   const [showModal, setShowAddBooking] = useState(false)
   const [bookingModalData, setBookingModalData] = useState(null)
@@ -28,10 +28,10 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    if (resorts?.length === 0) {
+    if (user && resorts?.length === 0) {
       router.push('/onboarding')
     }
-  }, [resorts])
+  }, [router, user, resorts])
 
   return (
     <div className="p-6 bg-[#e3eff2]">

@@ -95,6 +95,7 @@ export async function POST(req) {
     role: 'user',
     plan: 'free',
     subscription_status: 'inactive',
+    partner_agent_id: lead.partner_agent_id || null,
   })
 
   await supabaseAdmin
@@ -103,6 +104,7 @@ export async function POST(req) {
       status: 'approved',
       approved_at: new Date().toISOString(),
       approved_user_id: createdUserId,
+      partner_agent_id: lead.partner_agent_id || null
     })
     .eq('id', leadId)
 

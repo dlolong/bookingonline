@@ -35,6 +35,7 @@ export function AppProvider({ children }) {
     '/public-booking',
     '/auth/confirm',
     '/invite/accept',
+    '/partner'
   ]
   const isPublicRoute = publicRoutes.some((route) =>
     pathname.startsWith(route)
@@ -58,9 +59,11 @@ export function AppProvider({ children }) {
     setSelectedResortState(null)
     setConfirmedBookings([])
     setPendingBookings([])
+    setCompletedBookings([])
+
     localStorage.removeItem('selected_resort_id')
 
-    router.push('/login')
+    router.replace('/') // or /login
   }
 
   const setSelectedResort = async (resort) => {
@@ -104,9 +107,9 @@ export function AppProvider({ children }) {
     const bookings = data || []
 
     const now = new Date()
-    
+
     setCompletedBookings(
-      bookings.filter((b) =>  b.status === 'confirmed' && new Date(b.end_datetime) < now)
+      bookings.filter((b) => b.status === 'confirmed' && new Date(b.end_datetime) < now)
     )
 
     setConfirmedBookings(
@@ -179,6 +182,7 @@ export function AppProvider({ children }) {
       setSelectedResortState(selected)
 
       if (
+        currentUser &&
         resortsList.length === 0 &&
         pathname !== '/onboarding' &&
         !pathname.startsWith('/admin')
@@ -191,6 +195,10 @@ export function AppProvider({ children }) {
         (pathname === '/onboarding' || pathname === '/login')
       ) {
         router.replace('/dashboard')
+      }
+
+      if (!currentUser && pathname === '/onboarding') {
+        router.replace('/')
       }
 
       if (selected?.id) {

@@ -85,6 +85,23 @@ export default function WelcomePage() {
           Start Free Today
         </button>
       </section>
+
+      <section className="max-w-4xl mx-auto px-6 py-4 text-center">
+        <h2 className="text-2xl font-bold mb-4">
+          Partner Agent Program
+        </h2>
+
+        <p className="text-gray-600 mb-8">
+         Earn monthly commission by referring resort owners
+        </p>
+
+        <button
+          onClick={() => router.push('/partner')}
+          className="cursor-pointer bg-[#434343] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#000000]"
+        >
+           Become an Agent
+        </button>
+      </section>
     </main>
   )
 }

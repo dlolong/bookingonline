@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useApp } from '@/context/AppContext'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -26,7 +26,6 @@ function isValidMobileNumber(value) {
 export default function ContactPage() {
   const router = useRouter()
   const { showToast } = useApp()
-
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -34,9 +33,12 @@ export default function ContactPage() {
     resort_name: '',
     message: '',
   })
-
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+
+  const searchParams = useSearchParams()
+  const partnerSlug = searchParams.get('partner')
+  const [partnerAgent, setPartnerAgent] = useState(null)
 
   const handleChange = (e) => {
     setForm((prev) => ({
@@ -68,7 +70,8 @@ export default function ContactPage() {
         resort_name: form.resort_name,
         message: form.message,
         status: 'new',
-        source: 'contact_page',
+        partner_agent_id: partnerAgent?.id || null,
+        source: partnerAgent ? 'partner_referral' : 'contact_page',
       },
     ])
 
@@ -89,6 +92,23 @@ export default function ContactPage() {
     setSuccess(true)
     // router.push('/contact/success')
   }
+
+ useEffect(() => {
+  const loadPartner = async () => {
+    if (!partnerSlug) return
+
+    const { data } = await supabase
+      .from('partner_agents')
+      .select('*')
+      .eq('slug', partnerSlug)
+      .in('status', ['pending', 'approved'])
+      .maybeSingle()
+
+    setPartnerAgent(data || null)
+  }
+
+  loadPartner()
+}, [partnerSlug])
 
   if (success) {
     return (
@@ -157,6 +177,11 @@ export default function ContactPage() {
           </ul>
         </div>
 
+        {partnerAgent && (
+          <div className="bg-blue-50 text-blue-700 p-3 rounded mb-4 text-sm">
+            Referred by partner: <strong>{partnerAgent.name}</strong>
+          </div>
+        )}
         {/* Form */}
         <form
           onSubmit={handleSubmit}

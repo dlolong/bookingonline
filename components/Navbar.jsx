@@ -80,7 +80,7 @@ export default function Navbar() {
               className="flex items-center gap-2 content-center"
             >
               {pathname.includes("/dashboard")
-              && selectedResort ? <h1 className="font-bold text-xl capitalize cursor-pointer">
+                && selectedResort ? <h1 className="font-bold text-xl capitalize cursor-pointer">
                 {selectedResort?.name}
               </h1> : (
                 <Image
@@ -95,16 +95,16 @@ export default function Navbar() {
 
               {/* ✏️ Edit Icon */}
               {user && profile?.plan === "pro" && pathname.includes("/dashboard") && resorts.length > 0 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setOpenMenu((prev) => !prev)
-                }}
-                className="[text-align:-webkit-center] w-6 text-gray-700 hover:bg-gray-300 hover:text-black text-sm rounded-full cursor-pointer"
-              >
-                <ChevronDown width={16}/>
-              </button>
-            )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setOpenMenu((prev) => !prev)
+                  }}
+                  className="[text-align:-webkit-center] w-6 text-gray-700 hover:bg-gray-300 hover:text-black text-sm rounded-full cursor-pointer"
+                >
+                  <ChevronDown width={16} />
+                </button>
+              )}
             </div>
 
             {/* Booking link */}
@@ -179,7 +179,7 @@ export default function Navbar() {
                         </p>
                       </div>
 
-                     {profile?.role === "admin" && <button
+                      {profile?.role === "admin" && <button
                         onClick={() => {
                           setOpenUserMenu(false)
                           router.push('/admin')
@@ -202,12 +202,12 @@ export default function Navbar() {
                 !pathname.includes("public-booking") && <>
                   {
                     (pathname === "/" || pathname.includes("signup") || pathname.includes("contact")) &&
-                     <button
-                    onClick={() => router.push('/login')}
-                    className="px-4 py-2 cursor-pointer rounded-xl font-semibold border hover:border-2 hover:border-green-700"
-                  >
-                    Login
-                  </button>}
+                    <button
+                      onClick={() => router.push('/login')}
+                      className="px-4 py-2 cursor-pointer rounded-xl font-semibold border hover:border-2 hover:border-green-700"
+                    >
+                      Login
+                    </button>}
 
                   {pathname.includes("login") &&
                     <button
@@ -219,6 +219,15 @@ export default function Navbar() {
                       Request Access
                     </button>
                   }
+
+                 {/* {
+                  !pathname.includes("partner") &&
+                     <button
+                    onClick={() => router.push('/partner')}
+                    className="px-4 py-2 rounded border text-xs"
+                  >
+                    Become an Agent
+                  </button>} */}
                 </>
               )}
             </>
