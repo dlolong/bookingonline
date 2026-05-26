@@ -176,8 +176,7 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
               <button
                 {...props}
                 type="button"
-                className={`
-                               relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden flex items-center justify-center
+                className={`relative mx-[1px] w-10 h-10 md:w-14 md:h-14 rounded-full overflow-hidden flex items-center justify-center
                                transition
                       ${isToday ? 'ring-2 ring-blue-500 font-bold' : 'border-gray-200'}
                       hover:scale-105 disabled:opacity-90 hover:enabled:bg-gray-200 enabled:cursor-pointer cursor-default
