@@ -7,6 +7,7 @@ import { format, isSameDay, isValid } from 'date-fns'
 import { supabase } from '@/lib/supabaseClient'
 import { useApp } from '@/context/AppContext'
 import { formatAmountInput, parseAmount, formatAmount } from '@/utils/amount'
+import { getPHDate, getPHTime } from '@/utils/dateTime'
 
 
 function normalizeMobile(value) {
@@ -25,6 +26,74 @@ function isValidMobileNumber(value) {
     const regex = /^(09|\+639|639)\d{9}$/
     return regex.test(cleaned)
 }
+
+
+function getBookingColor(booking, bookings) {
+    const index = bookings.findIndex((b) => b.id === booking.id)
+    return bookingColors[index % bookingColors.length]
+}
+
+function getDayDate(day) {
+    return format(day, 'yyyy-MM-dd')
+}
+
+
+function getBookingSession(day, booking) {
+    const dayDate = getDayDate(day)
+
+    const startDate = getPHDate(booking.start_datetime)
+    const startTime = getPHTime(booking.start_datetime)
+
+    const endDate = getPHDate(booking.end_datetime)
+    const endTime = getPHTime(booking.end_datetime)
+
+    // Morning only: May 17 7AM → May 17 5PM = LEFT
+    if (
+        dayDate === startDate &&
+        dayDate === endDate &&
+        startTime >= '07:00' &&
+        startTime < '17:00' &&
+        endTime <= '17:00'
+    ) {
+        return 'morning'
+    }
+
+    // Overnight start: May 17 7PM → May 18 6AM = RIGHT on May 17
+    if (
+        dayDate === startDate &&
+        startTime >= '19:00'
+    ) {
+        return 'overnight'
+    }
+
+    // Extended next day: May 17 7PM → May 18 5PM = LEFT on May 18
+    if (
+        dayDate === endDate &&
+        startDate !== endDate &&
+        endTime > '06:00'
+    ) {
+        return 'morning'
+    }
+
+    return null
+}
+
+function getDaySessions(day, bookings) {
+    const morningBooking = bookings.find(
+        (booking) => getBookingSession(day, booking) === 'morning'
+    )
+
+    const overnightBooking = bookings.find(
+        (booking) => getBookingSession(day, booking) === 'overnight'
+    )
+
+    return {
+        morningBooking,
+        overnightBooking,
+        isFull: Boolean(morningBooking && overnightBooking),
+    }
+}
+
 
 export default function PublicBookingForm({ resort, bookings, showCalendar }) {
     const { showToast } = useApp()
@@ -76,45 +145,6 @@ export default function PublicBookingForm({ resort, bookings, showCalendar }) {
         setSelectedDate(day)
         setActiveTab('reservation')
         setFormStartDate(format(new Date(day), 'yyyy-MM-dd'))
-    }
-
-    function getBookingsForDay(day, bookings) {
-        return bookings.filter((booking) => {
-            const start = new Date(booking.start_datetime)
-            const end = new Date(booking.end_datetime)
-
-            const dayStart = new Date(day)
-            dayStart.setHours(0, 0, 0, 0)
-
-            const dayEnd = new Date(day)
-            dayEnd.setHours(23, 59, 59, 999)
-
-            return start <= dayEnd && end >= dayStart
-        })
-    }
-
-    function getSlotForDay(day, booking) {
-        const start = new Date(booking.start_datetime)
-        const end = new Date(booking.end_datetime)
-
-        const isStartDay = isSameDay(day, start)
-        const isEndDay = isSameDay(day, end)
-
-        const startHour = start.getHours()
-        const endHour = end.getHours()
-
-        // Overnight booking:
-        // May 17 7PM → May 18 6AM
-        if (isStartDay && startHour >= 6) return 'pm'
-        if (isEndDay && endHour <= 18) return 'am'
-
-        // Same-day booking
-        if (isStartDay && isEndDay) {
-            if (startHour < 18 && endHour <= 6) return 'am'
-            if (startHour >= 6 && endHour > 18) return 'pm'
-        }
-
-        return 'full'
     }
 
     function checkAvailability(startValue, endValue, bookings) {
@@ -264,82 +294,75 @@ export default function PublicBookingForm({ resort, bookings, showCalendar }) {
                             const day = props.day.date
                             const isToday = new Date().toDateString() === day.toDateString()
 
-                            const dayBookings = getBookingsForDay(day, bookings)
-
-                            const amBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'am')
-                            const pmBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'pm')
-                            const fullBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'full')
+                            const {
+                                morningBooking,
+                                overnightBooking,
+                                isFull,
+                            } = getDaySessions(day, bookings)
 
                             return (
                                 <button
                                     {...props}
                                     type="button"
-                                    className={
-                                        `relative w-10 h-10 md:w-14 md:h-14 rounded-full overflow-hidden flex items-center justify-center transition
+                                    className={`
+                               relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden flex items-center justify-center
+                               transition
                       ${isToday ? 'ring-2 ring-blue-500 font-bold' : 'border-gray-200'}
-                      hover:scale-105 disabled:opacity-90 hover:enabled:bg-gray-200 enabled:cursor-pointer cursor-default`}
+                      hover:scale-105 disabled:opacity-90 hover:enabled:bg-gray-200 enabled:cursor-pointer cursor-default
+                               `}
                                 >
-                                    {/* Full day */}
-                                    {fullBooking && (
+                                    {isFull && (
+                                        <>
+                                            <span
+                                                className="absolute left-0 top-0 h-full w-1/2"
+                                                style={{
+                                                    backgroundColor: "#ff9b9b",
+                                                }}
+                                            />
+                                            <span
+                                                className="absolute right-0 top-0 h-full w-1/2"
+                                                style={{
+                                                    backgroundColor: "#ff9b9b",
+                                                }}
+                                            />
+                                        </>
+                                    )}
+
+                                    {!isFull && morningBooking && (
                                         <span
-                                            className="absolute inset-0 shadow-inner bg-red-300"
+                                            className="absolute left-0 top-0 h-full w-1/2"
+                                            style={{
+                                                backgroundColor: "#ff9b9b",
+                                            }}
                                         />
                                     )}
 
-                                    {/* AM */}
-                                    {amBooking && (
+                                    {!isFull && overnightBooking && (
                                         <span
-                                            className="absolute top-0 left-0 w-full h-1/2 bg-red-300"
+                                            className="absolute right-0 top-0 h-full w-1/2"
+                                            style={{
+                                                backgroundColor: "#ff9b9b",
+                                            }}
                                         />
                                     )}
 
-                                    {/* PM */}
-                                    {pmBooking && (
-                                        <span
-                                            className="absolute bottom-0 left-0 w-full h-1/2 bg-red-300"
-                                        />
-                                    )}
+                                    {/* {(morningBooking || overnightBooking) && (
+                                        <span className="absolute top-0 bottom-0 left-1/2 w-px bg-white/80" />
+                                    )} */}
 
-                                    {/* Today highlight overlay (subtle) */}
-                                    {isToday && (
-                                        <span className="absolute inset-0 rounded-full" />
-                                    )}
-
-                                    {/* Day number */}
                                     <span className="relative z-10 text-sm font-semibold text-gray-800">
-                                        {format(day, 'd')}
+                                        {day.getDate()}
                                     </span>
                                 </button>
                             )
-                        },
-                    }}
-                    classNames={{
-                        months: 'w-full',
-                        month: 'w-full',
-                        table: 'w-full',
-                        head_row: 'grid grid-cols-7',
-                        row: 'grid grid-cols-7',
-                        cell: 'flex justify-center p-0.5 sm:p-1',
-
-                        day: `
-                                w-9 h-9
-                                sm:w-10 sm:h-10
-                                md:w-11 md:h-11
-                                lg:w-12 lg:h-12
-                                rounded-full
-                                text-sm
-                            `,
-
-                        day_selected: 'bg-green-600 text-white',
-                        day_disabled: 'opacity-40 cursor-not-allowed',
-                        day_today: 'ring-2 ring-green-500',
+                        }
                     }}
                 />
             </div>
 
             <div className="flex gap-4 mt-5 text-sm content-center">
                 <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded bg-red-300 border" />
+                    <span className="w-4 h-4 rounded bg-[#ff9b9b] border" />
                     Not vacant
                 </div>
             </div>
@@ -353,88 +376,51 @@ export default function PublicBookingForm({ resort, bookings, showCalendar }) {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-3">
-                <div className="mt-8 flex grid-cols-3 gap-2">
+
+                <div className="mt-8 grid grid-cols-1 gap-2">
                     <p className='w-88'>Check In</p>
-                    <input
-                        min={new Date().toISOString().split('T')[0]}
-                        type="date"
-                        name="start_date"
-                        value={formStartDate}
-                        className="flex-1 border p-2 rounded text-gray-600"
-                        onChange={(e) => setFormStartDate(e.target.value)}
-                    />
-
-                    {/* <div className="relative flex-1">
-                        {!formStartDate && (
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                                Start Date
-                            </span>
-                        )}
-
+                    <div className='grid grid-cols-2 gap-2'>
                         <input
                             min={new Date().toISOString().split('T')[0]}
                             type="date"
                             name="start_date"
                             value={formStartDate}
-                            className={`w-full border p-2 pr-10 rounded ${!formStartDate ? "text-transparent" : "text-gray-900"
-                                }`}
+                            className="flex-1 border p-2 rounded text-gray-600"
                             onChange={(e) => setFormStartDate(e.target.value)}
                         />
-
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                            📅
-                        </span>
-                    </div> */}
-                    <input
-                        type="time"
-                        name="start_time"
-                        value={formStartTime}
-                        className="flex-1 border p-2 rounded"
-                        onChange={(e) => setFormStartTime(e.target.value)}
-                    />
-                </div>
-                <div className="flex grid-cols-3 gap-2">
-                    <p className='w-88'>Check Out</p>
-                    <input
-                        min={(formStartDate ? new Date(formStartDate) : new Date()).toISOString().split('T')[0]}
-                        type="date"
-                        name="end_date"
-                        value={formEndDate}
-                        className="flex-1 border p-2 rounded text-gray-600"
-                        onChange={(e) => setFormEndDate(e.target.value)}
-                    />
-                    {/* <div className="relative flex-1">
-                        {!formStartDate && (
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                                End Date
-                            </span>
-                        )}
-
                         <input
-                            min={(formStartDate ? new Date(formStartDate) : new Date())
-                                .toISOString()
-                                .split("T")[0]}
+                            type="time"
+                            name="start_time"
+                            value={formStartTime}
+                            className="flex-1 border p-2 rounded"
+                            onChange={(e) => setFormStartTime(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+
+                <div className="grid grid-cols-1 gap-2">
+                    <p className='w-88'>Check Out</p>
+                    <div className='grid grid-cols-2 gap-2'>
+                        <input
+                            min={(formStartDate ? new Date(formStartDate) : new Date()).toISOString().split('T')[0]}
                             type="date"
                             name="end_date"
                             value={formEndDate}
-                            className={`w-full border p-2 pr-10 rounded ${!formEndDate ? "text-transparent" : "text-gray-900"
-                                }`}
+                            className="flex-1 border p-2 rounded text-gray-600"
                             onChange={(e) => setFormEndDate(e.target.value)}
                         />
 
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                            📅
-                        </span>
-                    </div> */}
-
-                    <input
-                        type="time"
-                        name="end_time"
-                        value={formEndTime}
-                        className="flex-1 border p-2 rounded"
-                        onChange={(e) => setFormEndTime(e.target.value)}
-                    />
+                        <input
+                            type="time"
+                            name="end_time"
+                            value={formEndTime}
+                            className="flex-1 border p-2 rounded"
+                            onChange={(e) => setFormEndTime(e.target.value)}
+                        />
+                    </div>
                 </div>
+
                 {availability && (
                     <div
                         className={`p-3 rounded text-sm ${availability.available

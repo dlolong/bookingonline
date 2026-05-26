@@ -27,6 +27,11 @@ export default function DashboardPage() {
     refreshBookings()
   }
 
+  const handleSuccess = () => {
+    setActiveTab("reserved")
+    refreshBookings()
+  }
+
   useEffect(() => {
     if (user && resorts?.length === 0) {
       router.push('/onboarding')
@@ -38,7 +43,7 @@ export default function DashboardPage() {
       <AddBookingModal
         open={showModal}
         onClose={() => setShowAddBooking(false)}
-        onSuccess={refreshBookings}
+        onSuccess={handleSuccess}
         bookingModalData={bookingModalData}
       />
 

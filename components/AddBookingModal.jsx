@@ -43,6 +43,7 @@ export default function AddBookingModal({
         end_time: '17:00',
         guests: '',
         agreed_amount: '',
+        downpayment: '',
         notes: '',
     }
 
@@ -54,6 +55,7 @@ export default function AddBookingModal({
     const [formContact, setFormContact] = useState(defaultForm.contact)
     const [formGuests, setFormGuests] = useState(defaultForm.guests)
     const [formAgreedAmount, setFormAgreedAmount] = useState(defaultForm.agreed_amount)
+    const [formDownpayment, setFormDownpayment] = useState(defaultForm.downpayment)
     const [formNotes, setFormNotes] = useState(defaultForm.notes)
 
     const [form, setForm] = useState(defaultForm)
@@ -73,6 +75,7 @@ export default function AddBookingModal({
         setFormContact(defaultForm.contact)
         setFormGuests(defaultForm.guests)
         setFormAgreedAmount(defaultForm.agreed_amount)
+        setFormDownpayment(defaultForm.downpayment)
         setFormNotes(defaultForm.notes)
     }
 
@@ -160,6 +163,7 @@ export default function AddBookingModal({
                 guests: Number(formGuests || 0),
                 agreed_amount: parseAmount(formAgreedAmount),
                 proposed_amount: parseAmount(formAgreedAmount),
+                downpayment: parseAmount(formDownpayment),
                 notes: formNotes,
                 status: 'confirmed',
             },
@@ -217,39 +221,17 @@ export default function AddBookingModal({
 
                 <form onSubmit={handleSubmit} className="space-y-3">
 
-                    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="mt-8 grid grid-cols-1 gap-2">
                         <p className='w-88'>Check In</p>
                         <div className='grid grid-cols-2 gap-2'>
                             <input
-                            min={new Date().toISOString().split('T')[0]}
-                            type="date"
-                            name="start_date"
-                            value={formStartDate}
-                            className="flex-1 border p-2 rounded text-gray-600"
-                            onChange={(e) => setFormStartDate(e.target.value)}
-                        />
-                            {/* <div className="relative flex-1">
-                                {!formStartDate && (
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                                        Start Date
-                                    </span>
-                                )}
-
-                                <input
-                                    min={new Date().toISOString().split('T')[0]}
-                                    type="date"
-                                    name="start_date"
-                                    value={formStartDate}
-                                    className={`w-full border p-2 pr-10 rounded ${!formStartDate ? "text-transparent" : "text-gray-900"
-                                        }`}
-                                    onChange={(e) => setFormStartDate(e.target.value)}
-                                />
-
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                                    📅
-                                </span>
-                            </div> */}
-
+                                min={new Date().toISOString().split('T')[0]}
+                                type="date"
+                                name="start_date"
+                                value={formStartDate}
+                                className="flex-1 border p-2 rounded text-gray-600"
+                                onChange={(e) => setFormStartDate(e.target.value)}
+                            />
                             <input
                                 type="time"
                                 name="start_time"
@@ -261,40 +243,17 @@ export default function AddBookingModal({
                     </div>
 
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 gap-2">
                         <p className='w-88'>Check Out</p>
                         <div className='grid grid-cols-2 gap-2'>
                             <input
-                            min={(formStartDate ? new Date(formStartDate) : new Date()).toISOString().split('T')[0]}
-                            type="date"
-                            name="end_date"
-                            value={formEndDate}
-                            className="flex-1 border p-2 rounded text-gray-600"
-                            onChange={(e) => setFormEndDate(e.target.value)}
-                        />
-                            {/* <div className="relative flex-1">
-                                {!formStartDate && (
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                                        End Date
-                                    </span>
-                                )}
-
-                                <input
-                                    min={(formStartDate ? new Date(formStartDate) : new Date())
-                                        .toISOString()
-                                        .split("T")[0]}
-                                    type="date"
-                                    name="end_date"
-                                    value={formEndDate}
-                                    className={`w-full border p-2 pr-10 rounded ${!formEndDate ? "text-transparent" : "text-gray-900"
-                                        }`}
-                                    onChange={(e) => setFormEndDate(e.target.value)}
-                                />
-
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                                    📅
-                                </span>
-                            </div> */}
+                                min={(formStartDate ? new Date(formStartDate) : new Date()).toISOString().split('T')[0]}
+                                type="date"
+                                name="end_date"
+                                value={formEndDate}
+                                className="flex-1 border p-2 rounded text-gray-600"
+                                onChange={(e) => setFormEndDate(e.target.value)}
+                            />
 
                             <input
                                 type="time"
@@ -350,6 +309,18 @@ export default function AddBookingModal({
                         className="w-full border p-2 rounded"
                     />
 
+                    <input
+                        type="text"
+                        name="downpayment"
+                        value={formatAmountInput(formDownpayment)}
+                        onChange={(e) => {
+                            const raw = e.target.value.replace(/[^\d]/g, '')
+                            setFormDownpayment(raw)
+                        }}
+                        placeholder="Downpayment"
+                        className="w-full border p-2 rounded"
+                    />
+
                     <textarea
                         name="notes"
                         value={formNotes}
@@ -366,6 +337,7 @@ export default function AddBookingModal({
                             || !formEndDate
                             || !formGuests
                             || !formAgreedAmount
+                            || !formDownpayment
                             || addBookingProgress
                             || !selectedResort
                         }

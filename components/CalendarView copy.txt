@@ -6,7 +6,6 @@ import 'react-day-picker/dist/style.css'
 import { format, isBefore, isSameDay } from 'date-fns'
 import { CircleMinus, Flag, MapPin, NotepadText, Phone, User, Users } from 'lucide-react'
 import { formatAmount } from '@/utils/amount'
-import { getPHDate, getPHTime } from '@/utils/dateTime'
 
 
 const bookingColors = [
@@ -31,89 +30,49 @@ function getBookingColor(booking, bookings) {
   return bookingColors[index % bookingColors.length]
 }
 
-function getDayDate(day) {
-  return format(day, 'yyyy-MM-dd')
+
+function formatDateTime(datetime) {
+  if (!datetime) return ''
+  return format(new Date(datetime), 'MMMM dd yy hh:mm a')
 }
 
+function getBookingsForDay(day, bookings) {
+  return bookings.filter((booking) => {
+    const start = new Date(booking.start_datetime)
+    const end = new Date(booking.end_datetime)
 
-function getBookingSession(day, booking) {
-  const dayDate = getDayDate(day)
+    const dayStart = new Date(day)
+    dayStart.setHours(0, 0, 0, 0)
 
-  const startDate = getPHDate(booking.start_datetime)
-  const startTime = getPHTime(booking.start_datetime)
+    const dayEnd = new Date(day)
+    dayEnd.setHours(23, 59, 59, 999)
 
-  const endDate = getPHDate(booking.end_datetime)
-  const endTime = getPHTime(booking.end_datetime)
-
-  // Whole start date occupied:
-  // May 17 7AM → May 18 6AM
-  if (
-    dayDate === startDate &&
-    startDate !== endDate &&
-    startTime >= '07:00' &&
-    startTime < '17:00' &&
-    endTime <= '06:00'
-  ) {
-    return 'full'
-  }
-
-  // Morning only: May 17 7AM → May 17 5PM = LEFT
-  if (
-    dayDate === startDate &&
-    dayDate === endDate &&
-    startTime >= '07:00' &&
-    startTime < '17:00' &&
-    endTime <= '17:00'
-  ) {
-    return 'morning'
-  }
-
-  // Overnight start: May 17 7PM → May 18 6AM = RIGHT on May 17
-  if (
-    dayDate === startDate &&
-    startTime >= '19:00'
-  ) {
-    return 'overnight'
-  }
-
-  // Extended next day: May 17 7PM → May 18 5PM = LEFT on May 18
-  if (
-    dayDate === endDate &&
-    startDate !== endDate &&
-    endTime > '06:00'
-  ) {
-    return 'morning'
-  }
-
-  return null
-}
-
-function getDaySessions(day, bookings) {
-  let morningBooking = null
-  let overnightBooking = null
-
-  bookings.forEach((booking) => {
-    const session = getBookingSession(day, booking)
-
-    if (session === 'full') {
-      morningBooking = booking
-      overnightBooking = booking
-    }
-
-    if (session === 'morning') {
-      morningBooking = booking
-    }
-
-    if (session === 'overnight') {
-      overnightBooking = booking
-    }
+    return start <= dayEnd && end >= dayStart
   })
+}
 
-  return {
-    morningBooking,
-    overnightBooking,
-    isFull: Boolean(morningBooking && overnightBooking),
+function getSlotForDay(day, booking) {
+  const start = new Date(booking.start_datetime)
+  const end = new Date(booking.end_datetime)
+
+  const isStartDay = isSameDay(day, start)
+  const isEndDay = isSameDay(day, end)
+
+  const startHour = start.getHours()
+  const endHour = end.getHours()
+
+  // Overnight booking:
+  // May 17 7PM → May 18 6AM
+  if (isStartDay && startHour >= 6) return 'pm'
+  if (isEndDay && endHour <= 18) return 'am'
+
+  // Same-day booking
+  if (isStartDay && isEndDay) {
+    if (startHour < 18 && endHour <= 6) return 'am'
+    if (startHour >= 6 && endHour > 18) return 'pm'
   }
+
+  return 'full'
 }
 
 export default function CalendarView({ bookings = [], onAddBooking, onCancelBooking }) {
@@ -141,7 +100,7 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
       setSelectedBookings(bookingsForDay)
       setOpenModal(true)
     } else {
-      onAddBooking(day)
+      onAddBooking(day) 
     }
   }
 
@@ -167,69 +126,65 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
           DayButton: (props) => {
             const day = props.day.date
             const isToday = new Date().toDateString() === day.toDateString()
+            const isDone =  new Date().toDateString() >= day.toDateString()
 
-            const {
-              morningBooking,
-              overnightBooking,
-              isFull,
-            } = getDaySessions(day, bookings)
+            const dayBookings = getBookingsForDay(day, bookings)
+
+            const amBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'am')
+            const pmBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'pm')
+            const fullBooking = dayBookings.find((b) => getSlotForDay(day, b) === 'full')
 
             return (
               <button
                 {...props}
                 type="button"
-                className={`
-                               relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden flex items-center justify-center
-                               transition
-                      ${isToday ? 'ring-2 ring-blue-500 font-bold' : 'border-gray-200'}
-                      hover:scale-105 disabled:opacity-90 hover:enabled:bg-gray-200 enabled:cursor-pointer cursor-default
-                               `}
+                className={
+                  `relative w-10 h-10 md:w-14 md:h-14 rounded-full overflow-hidden flex items-center justify-center transition
+        ${isToday ? 'ring-2 ring-blue-500 font-bold' : 'border-gray-200'}
+        hover:scale-105 disabled:opacity-90 hover:enabled:bg-gray-200 enabled:cursor-pointer cursor-default`}
               >
-                {isFull && (
-                  <>
-                    <span
-                      className="absolute left-0 top-0 h-full w-1/2"
-                      style={{
-                        backgroundColor: getBookingColor(morningBooking, bookings),
-                      }}
-                    />
-                    <span
-                      className="absolute right-0 top-0 h-full w-1/2"
-                      style={{
-                        backgroundColor: getBookingColor(overnightBooking, bookings),
-                      }}
-                    />
-                  </>
-                )}
-
-                {!isFull && morningBooking && (
+                {/* Full day */}
+                {fullBooking && (
                   <span
-                    className="absolute left-0 top-0 h-full w-1/2"
+                    className="absolute inset-0 shadow-inner"
                     style={{
-                      backgroundColor: getBookingColor(morningBooking, bookings),
+                      backgroundColor: getBookingColor(fullBooking, bookings),
                     }}
                   />
                 )}
 
-                {!isFull && overnightBooking && (
+                {/* AM */}
+                {amBooking && (
                   <span
-                    className="absolute right-0 top-0 h-full w-1/2"
+                    className="absolute top-0 left-0 w-full h-1/2"
                     style={{
-                      backgroundColor: getBookingColor(overnightBooking, bookings),
+                      backgroundColor: getBookingColor(amBooking, bookings),
                     }}
                   />
                 )}
 
-                {/* {!isFull && (morningBooking || overnightBooking) && (
-                  <span className="absolute top-0 bottom-0 left-1/2 w-px bg-white/80" />
-                )} */}
+                {/* PM */}
+                {pmBooking && (
+                  <span
+                    className="absolute bottom-0 left-0 w-full h-1/2"
+                    style={{
+                      backgroundColor: getBookingColor(pmBooking, bookings),
+                    }}
+                  />
+                )}
 
+                {/* Today highlight overlay (subtle) */}
+                {isToday && (
+                  <span className="absolute inset-0 bg-white/40 rounded-full" />
+                )}
+
+                {/* Day number */}
                 <span className="relative z-10 text-sm font-semibold text-gray-800">
-                  {day.getDate()}
+                  {format(day, 'd')}
                 </span>
               </button>
             )
-          }
+          },
         }}
       />
 
@@ -272,16 +227,16 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
                       <p className='flex items-center text-sm font-bold'>
                         <span className='mr-2'>✅</span> Amount: {formatAmount(booking.agreed_amount)}
                       </p>
-                      <p className='flex items-center text-gray-500'>
-                        <CircleMinus width={16} className='text-gray-700 mr-2' />Downpayment: {formatAmount(booking.downpayment)}
-                      </p>
-                      <p className='flex items-center'>
-                        <CircleMinus width={16} className='text-gray-700 mr-2 font-bold' />Balance: {formatAmount(booking.agreed_amount - booking.downpayment)}
-                      </p>
+                        <p className='flex items-center text-gray-500'>
+                          <CircleMinus width={16} className='text-gray-700 mr-2' />Downpayment: {formatAmount(booking.downpayment)}
+                        </p>
+                          <p className='flex items-center'>
+                          <CircleMinus width={16} className='text-gray-700 mr-2 font-bold' />Balance: {formatAmount(booking.agreed_amount - booking.downpayment)}
+                        </p>
                       <p className='flex items-center mt-4'>
                         <Users width={16} className='text-gray-700 mr-2' /> {booking.guests} pax
                       </p>
-
+                     
                       <p className='flex items-center'>
                         <User width={16} className='text-gray-700 mr-2' /> {booking.name}
                       </p>
@@ -311,7 +266,7 @@ export default function CalendarView({ bookings = [], onAddBooking, onCancelBook
               ))}
             </div>
 
-            <button
+             <button
               onClick={handleAddBooking}
               className="mt-4 bg-blue-600 text-white px-3 py-2 md:px-4 rounded text-sm md:text-base cursor-pointer"
             >
