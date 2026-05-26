@@ -39,61 +39,82 @@ function getDayDate(day) {
 
 
 function getBookingSession(day, booking) {
-    const dayDate = getDayDate(day)
+  const dayDate = getDayDate(day)
 
-    const startDate = getPHDate(booking.start_datetime)
-    const startTime = getPHTime(booking.start_datetime)
+  const startDate = getPHDate(booking.start_datetime)
+  const startTime = getPHTime(booking.start_datetime)
 
-    const endDate = getPHDate(booking.end_datetime)
-    const endTime = getPHTime(booking.end_datetime)
+  const endDate = getPHDate(booking.end_datetime)
+  const endTime = getPHTime(booking.end_datetime)
 
-    // Morning only: May 17 7AM → May 17 5PM = LEFT
-    if (
-        dayDate === startDate &&
-        dayDate === endDate &&
-        startTime >= '07:00' &&
-        startTime < '17:00' &&
-        endTime <= '17:00'
-    ) {
-        return 'morning'
-    }
+  // 7AM start, ends next day = full start date
+  if (
+    dayDate === startDate &&
+    startDate !== endDate &&
+    startTime >= '07:00' &&
+    startTime < '17:00'
+  ) {
+    return 'full'
+  }
 
-    // Overnight start: May 17 7PM → May 18 6AM = RIGHT on May 17
-    if (
-        dayDate === startDate &&
-        startTime >= '19:00'
-    ) {
-        return 'overnight'
-    }
+   // Same-day morning = left
+  if (
+    dayDate === startDate &&
+    dayDate === endDate &&
+    startTime >= '07:00' &&
+    startTime < '17:00' &&
+    endTime <= '17:00'
+  ) {
+    return 'morning'
+  }
 
-    // Extended next day: May 17 7PM → May 18 5PM = LEFT on May 18
-    if (
-        dayDate === endDate &&
-        startDate !== endDate &&
-        endTime > '06:00'
-    ) {
-        return 'morning'
-    }
+ // Overnight start = right
+  if (
+    dayDate === startDate &&
+    startTime >= '19:00'
+  ) {
+    return 'overnight'
+  }
 
-    return null
+    // Booking ends next day and reaches morning session
+  if (
+    dayDate === endDate &&
+    startDate !== endDate &&
+    endTime > '06:00'
+  ) {
+    return 'morning'
+  }
+
+  return null
 }
 
 function getDaySessions(day, bookings) {
-    const morningBooking = bookings.find(
-        (booking) => getBookingSession(day, booking) === 'morning'
-    )
+  let morningBooking = null
+  let overnightBooking = null
 
-    const overnightBooking = bookings.find(
-        (booking) => getBookingSession(day, booking) === 'overnight'
-    )
+  bookings.forEach((booking) => {
+    const session = getBookingSession(day, booking)
 
-    return {
-        morningBooking,
-        overnightBooking,
-        isFull: Boolean(morningBooking && overnightBooking),
+    if (session === 'full') {
+      morningBooking = booking
+      overnightBooking = booking
     }
-}
 
+    if (session === 'morning') {
+      morningBooking = booking
+    }
+
+    if (session === 'overnight') {
+      overnightBooking = booking
+    }
+  })
+
+  return {
+    morningBooking,
+    overnightBooking,
+    isFull: Boolean(morningBooking && overnightBooking),
+  }
+}
 
 export default function PublicBookingForm({ resort, bookings, showCalendar }) {
     const { showToast } = useApp()
@@ -302,13 +323,18 @@ export default function PublicBookingForm({ resort, bookings, showCalendar }) {
 
                             return (
                                 <button
+                                    disabled={isFull}
                                     {...props}
                                     type="button"
                                     className={`
                                relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden flex items-center justify-center
                                transition
                       ${isToday ? 'ring-2 ring-blue-500 font-bold' : 'border-gray-200'}
-                      hover:scale-105 disabled:opacity-90 hover:enabled:bg-gray-200 enabled:cursor-pointer cursor-default
+                      hover:scale-105
+                      disabled:opacity-90
+                      hover:enabled:bg-gray-200
+                      enabled:cursor-pointer
+                      cursor-default
                                `}
                                 >
                                     {isFull && (

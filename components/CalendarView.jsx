@@ -10,20 +10,20 @@ import { getPHDate, getPHTime } from '@/utils/dateTime'
 
 
 const bookingColors = [
-  '#20c657', // pastel green
-  '#f9bb00', // pastel orange
-  '#5b95db', // pastel blue
-  '#d148d8', // pastel purple
-  '#32a88f', // pastel red
-  '#65a71e', // pastel teal
-  '#3baaae', // pastel yellow
-  '#59b10c', // pastel green
-  '#c0b300', // pastel orange
-  '#a960ed', // pastel blue
-  '#ec56d3', // pastel purple
-  '#d49d1e', // pastel red
-  '#22ae92', // pastel teal
-  '#a8b314', // pastel yellow
+  '#7cd399', // pastel green
+  '#e6ce86', // pastel orange
+  '#89add9', // pastel blue
+  '#cb8acf', // pastel purple
+  '#81c6b7', // pastel red
+  '#a4c085', // pastel teal
+  '#82bec0', // pastel yellow
+  '#99bd7a', // pastel green
+  '#e4dd7a', // pastel orange
+  '#bb98db', // pastel blue
+  '#e193d4', // pastel purple
+  '#e9c777', // pastel red
+  '#7fb4a9', // pastel teal
+  '#b0b380', // pastel yellow
 ]
 
 function getBookingColor(booking, bookings) {
@@ -45,19 +45,17 @@ function getBookingSession(day, booking) {
   const endDate = getPHDate(booking.end_datetime)
   const endTime = getPHTime(booking.end_datetime)
 
-  // Whole start date occupied:
-  // May 17 7AM → May 18 6AM
+  // 7AM start, ends next day = full start date
   if (
     dayDate === startDate &&
     startDate !== endDate &&
     startTime >= '07:00' &&
-    startTime < '17:00' &&
-    endTime <= '06:00'
+    startTime < '17:00'
   ) {
     return 'full'
   }
 
-  // Morning only: May 17 7AM → May 17 5PM = LEFT
+   // Same-day morning = left
   if (
     dayDate === startDate &&
     dayDate === endDate &&
@@ -68,7 +66,7 @@ function getBookingSession(day, booking) {
     return 'morning'
   }
 
-  // Overnight start: May 17 7PM → May 18 6AM = RIGHT on May 17
+ // Overnight start = right
   if (
     dayDate === startDate &&
     startTime >= '19:00'
@@ -76,7 +74,7 @@ function getBookingSession(day, booking) {
     return 'overnight'
   }
 
-  // Extended next day: May 17 7PM → May 18 5PM = LEFT on May 18
+    // Booking ends next day and reaches morning session
   if (
     dayDate === endDate &&
     startDate !== endDate &&
