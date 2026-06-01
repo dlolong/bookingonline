@@ -65,6 +65,15 @@ export default function Navbar() {
     )
   }
 
+  const handleLogout = () => {
+    setOpenUserMenu(false)
+    logout()
+  }
+
+  const handlePublicLinkClick = (link) => {
+    window.open(`${window.location.origin}${link}`)
+  }
+
   return (
     <div
       className={`fixed top-0 left-0 w-full z-50 transition ${scrolled ? 'shadow-md bg-white' : 'bg-white/80 backdrop-blur'
@@ -74,9 +83,9 @@ export default function Navbar() {
         {/* LEFT: Resort Title + Edit */}
         <div className="relative" ref={menuRef}>
           <div
-            onClick={() => router.replace(user ? '/dashboard' : '/')}
             className='pl-4 pr-4 rounded-full'>
             <div
+              onClick={() => router.replace(user ? '/dashboard' : '/')}
               className="flex items-center gap-2 content-center"
             >
               {pathname.includes("/dashboard")
@@ -108,8 +117,8 @@ export default function Navbar() {
             </div>
 
             {/* Booking link */}
-            {pathname.includes('/dashboard') && selectedResort?.slug && !refreshing && (
-              <p className="text-xs text-gray-500">
+            {pathname.includes('/dashboard') && selectedResort?.slug && (
+              <p onClick={() => handlePublicLinkClick(`/public-booking/${selectedResort.slug}`)} className="text-xs text-blue-500">
                 {`/public-booking/${selectedResort.slug}`}
               </p>
             )}
@@ -190,7 +199,7 @@ export default function Navbar() {
                       </button>}
 
                       <button
-                        onClick={logout}
+                        onClick={handleLogout}
                         className="block w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 cursor-pointer"
                       >
                         Logout
